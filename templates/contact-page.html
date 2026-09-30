@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-ec-theme="cherry-executive">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Contact Your Business.">
+  <title>Contact | Your Business</title>
+  <link rel="stylesheet" href="../core/css/framework.css">
+  <script type="module" src="../core/js/app.js"></script>
+</head>
+<body>
+  <a class="ec-skip-link" href="#main">Skip to main content</a>
+  <header class="ec-site-header">
+    <nav class="ec-shell ec-nav" data-ec-nav aria-label="Primary navigation">
+      <a class="ec-brand" href="../index.html"><span class="ec-brand__mark" data-site-short-name>YB</span><span data-site-name>Your Business</span></a>
+      <button class="ec-icon-button ec-nav__toggle" type="button" data-ec-nav-toggle aria-expanded="false" aria-controls="contact-links">☰<span class="ec-sr-only">Open navigation</span></button>
+      <div class="ec-nav__links" id="contact-links" data-ec-nav-links data-open="false"><a href="../index.html">Home</a><a href="service-page.html">Services</a><a href="contact-page.html" aria-current="page">Contact</a><button class="ec-button ec-button--secondary" type="button" data-ec-theme-toggle><span aria-hidden="true">◐</span><span data-theme-label>Cherry Executive</span></button></div>
+    </nav>
+  </header>
+  <main id="main" class="ec-section">
+    <div class="ec-shell ec-grid ec-grid--2">
+      <section>
+        <p class="ec-eyebrow">Contact</p>
+        <h1>Tell us what you are building.</h1>
+        <p class="ec-hero__lede">Replace this text with response expectations and the information the business needs to qualify an inquiry.</p>
+      </section>
+      <form class="ec-card ec-stack" id="contact-form" data-ec-form>
+        <div class="ec-field"><label for="name">Name</label><input class="ec-input" id="name" name="name" autocomplete="name" required minlength="2" aria-describedby="name-error"><span class="ec-field__error" id="name-error"></span></div>
+        <div class="ec-field"><label for="email">Email</label><input class="ec-input" id="email" name="email" type="email" autocomplete="email" required aria-describedby="email-error"><span class="ec-field__error" id="email-error"></span></div>
+        <div class="ec-field"><label for="message">How can we help?</label><textarea class="ec-textarea" id="message" name="message" required minlength="20" aria-describedby="message-error"></textarea><span class="ec-field__error" id="message-error"></span></div>
+        <div><button class="ec-button" type="submit">Send inquiry</button></div>
+      </form>
+    </div>
+  </main>
+</body>
+</html>
+

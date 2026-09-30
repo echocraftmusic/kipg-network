@@ -1,0 +1,9 @@
+EC Framework
+Version 2.0.0
+Created by Echo Craft Studio
+Updated September 2026
+
+Status: reusable development framework
+Production credentials: not included
+Production customer data: not included
+

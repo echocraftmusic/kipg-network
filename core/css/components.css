@@ -1,0 +1,212 @@
+.ec-glass,
+.ec-card {
+  border: 1px solid var(--ec-border);
+  background: var(--ec-surface);
+  box-shadow: var(--ec-shadow-sm);
+  backdrop-filter: blur(var(--ec-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ec-glass-blur));
+}
+
+.ec-card {
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border-radius: var(--ec-radius-lg);
+}
+
+.ec-card--feature {
+  position: relative;
+  overflow: hidden;
+}
+
+.ec-card--feature::after {
+  position: absolute;
+  right: -15%;
+  bottom: -30%;
+  width: 12rem;
+  aspect-ratio: 1;
+  content: "";
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ec-metal) 15%, transparent);
+  filter: blur(8px);
+}
+
+.ec-material-panel {
+  min-height: 24rem;
+  padding: 1.25rem;
+  border: 1px solid var(--ec-border);
+  border-radius: 1.75rem;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.09), transparent 42%),
+    repeating-linear-gradient(92deg, var(--ec-cherry-950) 0 1.8rem, var(--ec-cherry-800) 1.85rem 3.5rem);
+  box-shadow: var(--ec-shadow-lg);
+}
+
+.ec-material-panel__glass {
+  height: 100%;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  border: 1px solid color-mix(in srgb, var(--ec-metal-soft) 35%, transparent);
+  border-radius: 1.15rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.17), rgba(10, 12, 14, 0.18));
+  color: #fffaf3;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.ec-button {
+  min-height: 2.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.72rem 1.1rem;
+  border: 1px solid transparent;
+  border-radius: var(--ec-radius-pill);
+  background: linear-gradient(135deg, var(--ec-cherry-700), var(--ec-cherry-950));
+  color: #fffaf3;
+  font-weight: 750;
+  text-decoration: none;
+  box-shadow: var(--ec-shadow-sm);
+  transition: transform var(--ec-fast) ease, border-color var(--ec-fast) ease, filter var(--ec-fast) ease;
+}
+
+.ec-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.ec-button--secondary {
+  border-color: var(--ec-border-strong);
+  background: var(--ec-surface);
+  color: var(--ec-text);
+}
+
+.ec-icon-button {
+  width: 2.8rem;
+  min-height: 2.8rem;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--ec-border);
+  border-radius: 50%;
+  background: var(--ec-surface);
+  color: var(--ec-text);
+}
+
+.ec-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.ec-field label {
+  font-weight: 700;
+}
+
+.ec-input,
+.ec-select,
+.ec-textarea {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--ec-border-strong);
+  border-radius: var(--ec-radius-sm);
+  background: var(--ec-surface-strong);
+  color: var(--ec-text);
+}
+
+.ec-textarea {
+  min-height: 9rem;
+  resize: vertical;
+}
+
+.ec-field__help,
+.ec-field__error {
+  color: var(--ec-text-soft);
+  font-size: 0.875rem;
+}
+
+.ec-field__error {
+  color: var(--ec-danger);
+}
+
+.ec-alert {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--ec-border);
+  border-left: 4px solid var(--ec-metal);
+  border-radius: var(--ec-radius-sm);
+  background: var(--ec-surface-muted);
+}
+
+.ec-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding-inline: 0.65rem;
+  border: 1px solid var(--ec-border);
+  border-radius: var(--ec-radius-pill);
+  background: var(--ec-surface-muted);
+  color: var(--ec-text-soft);
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+.ec-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--ec-border);
+  border-radius: var(--ec-radius-md);
+}
+
+.ec-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ec-table th,
+.ec-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--ec-border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.ec-table th {
+  color: var(--ec-text-soft);
+  font-size: 0.8rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.ec-dialog {
+  width: min(92vw, 38rem);
+  padding: 0;
+  border: 1px solid var(--ec-border);
+  border-radius: var(--ec-radius-lg);
+  background: var(--ec-surface-strong);
+  color: var(--ec-text);
+  box-shadow: var(--ec-shadow-lg);
+}
+
+.ec-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(5px);
+}
+
+.ec-dialog__body {
+  padding: var(--ec-space-6);
+}
+
+.ec-toast-region {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1000;
+  width: min(92vw, 24rem);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.ec-toast {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--ec-border);
+  border-radius: var(--ec-radius-md);
+  background: var(--ec-surface-strong);
+  box-shadow: var(--ec-shadow-lg);
+}
+

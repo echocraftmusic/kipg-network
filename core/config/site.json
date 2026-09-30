@@ -1,0 +1,18 @@
+{
+  "siteName": "KIPG Network",
+  "shortName": "KIPG",
+  "description": "Faith. Conversation. Community. KIPG Network is the home of KIPG Podcast and a growing network of meaningful Christian programming.",
+  "canonicalUrl": "https://kipgnetwork.com",
+  "contactEmail": "",
+  "contactPhone": "",
+  "defaultTheme": "kipg-dark",
+  "navigation": [
+    { "label": "Home", "href": "index.html" },
+    { "label": "Live", "href": "pages/live.html" },
+    { "label": "Shows", "href": "pages/shows.html" },
+    { "label": "Schedule", "href": "pages/schedule.html" },
+    { "label": "Community", "href": "pages/community.html" },
+    { "label": "Prayer", "href": "pages/prayer.html" },
+    { "label": "About", "href": "pages/about.html" }
+  ]
+}

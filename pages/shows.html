@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en" data-ec-theme="kipg-dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Watch KIPG Podcast full episodes and explore KIPG Network programming.">
+  <title>Shows | KIPG Network</title>
+  <link rel="stylesheet" href="../core/css/framework.css">
+  <link rel="stylesheet" href="../assets/css/kipg.css">
+  <script type="module" src="../core/js/app.js"></script>
+  <script type="module" src="../assets/js/kipg.js"></script>
+</head>
+<body>
+  <a class="ec-skip-link" href="#main">Skip to main content</a>
+  <header class="kipg-header">
+    <nav class="kipg-shell kipg-nav" data-ec-nav aria-label="Primary navigation">
+      <a class="kipg-brand" href="../index.html" aria-label="KIPG Network home"><img class="kipg-brand__logo" src="../assets/images/kipg-network-logo.png" alt="KIPG Network"></a>
+      <button class="ec-icon-button kipg-nav__toggle" type="button" data-ec-nav-toggle aria-expanded="false" aria-controls="primary-links"><span aria-hidden="true">☰</span><span class="ec-sr-only">Open navigation</span></button>
+      <div class="kipg-nav__links" id="primary-links" data-ec-nav-links data-open="false">
+        <a href="../index.html">Home</a><a href="live.html">Live</a><a href="shows.html" aria-current="page">Shows</a><a href="schedule.html">Schedule</a><a href="community.html">Community</a><a href="prayer.html">Prayer</a><a href="about.html">About</a>
+        <button class="ec-icon-button kipg-theme" type="button" data-ec-theme-toggle><span aria-hidden="true" data-theme-label>☀︎</span><span class="ec-sr-only">Change color theme</span></button>
+        <a class="kipg-btn kipg-join" href="community.html">Join KIPG Network</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="kipg-page-hero kipg-shell">
+      <p class="kipg-kicker">Watch by show or topic</p>
+      <h1>Shows</h1>
+      <p>KIPG Podcast is the flagship show of KIPG Network. Our full-episode collection updates through the official YouTube playlist.</p>
+    </section>
+
+    <section class="kipg-section" id="kipg-podcast">
+      <div class="kipg-shell">
+        <div class="kipg-youtube-showcase">
+          <div class="kipg-youtube-showcase__intro">
+            <img src="../assets/images/kipg-podcast-logo.png" alt="KIPG Podcast" class="kipg-youtube-showcase__logo">
+            <p class="kipg-kicker">Full Episodes</p>
+            <h2>KIPG Podcast</h2>
+            <p>Watch the complete episode collection here. When a new full episode is added to the KIPG YouTube playlist, it becomes part of this collection automatically.</p>
+            <a class="kipg-btn kipg-btn--outline" href="https://www.youtube.com/playlist?list=PLWy7yBFqtc6o" target="_blank" rel="noopener noreferrer">Open Playlist on YouTube ↗</a>
+          </div>
+          <div class="kipg-youtube-player-wrap">
+            <iframe class="kipg-youtube-player" src="https://www.youtube.com/embed/videoseries?list=PLWy7yBFqtc6o" title="KIPG Podcast full episodes playlist" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="kipg-section" style="padding-top:0">
+      <div class="kipg-shell">
+        <div class="kipg-section__head"><div><p class="kipg-kicker">Explore Our Shows</p><h2>More from KIPG Network</h2></div></div>
+        <div class="kipg-show-grid">
+          <a class="kipg-show-card kipg-show-card--podcast" href="#kipg-podcast"><span>KIPG Podcast</span></a>
+          <a class="kipg-show-card kipg-show-card--faith" href="#"><span>Faith &amp; Purpose</span></a>
+          <a class="kipg-show-card kipg-show-card--stories" href="#"><span>Real People, Real Stories</span></a>
+          <a class="kipg-show-card kipg-show-card--prayer" href="prayer.html"><span>Prayer Life</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="kipg-footer"><div class="kipg-shell kipg-footer__row"><p>© <span data-current-year></span> KIPG Network.</p><p>Faith. Conversation. Community.</p></div></footer>
+</body>
+</html>

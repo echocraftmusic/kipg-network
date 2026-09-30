@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" data-ec-theme="black-onyx">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Secure administration sign-in starter.">
+  <title>Administration Sign In | EC Framework</title>
+  <link rel="stylesheet" href="../../core/css/framework.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
+  <script src="../../integrations/supabase/supabase-config.example.js"></script>
+  <script type="module" src="login.js"></script>
+</head>
+<body>
+  <main id="main" class="ec-section">
+    <div class="ec-shell" style="max-width:34rem">
+      <section class="ec-card ec-stack" aria-labelledby="login-title">
+        <a class="ec-brand" href="../../index.html"><span class="ec-brand__mark">EC</span><span>Secure Administration</span></a>
+        <div><p class="ec-eyebrow">Authorized access</p><h1 id="login-title">Sign in</h1><p class="ec-muted">Enter an approved administrator email to receive a secure sign-in link.</p></div>
+        <div class="ec-alert" data-config-warning hidden>The Supabase example is intentionally disconnected. Configure a development project before testing authentication.</div>
+        <form class="ec-stack" data-admin-login>
+          <div class="ec-field"><label for="admin-email">Email</label><input class="ec-input" id="admin-email" name="email" type="email" autocomplete="email" required></div>
+          <div><button class="ec-button" type="submit">Send secure link</button></div>
+          <p class="ec-muted ec-mb-0" data-login-status role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
+

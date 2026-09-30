@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-ec-theme="black-onyx">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="EC Framework administration starter.">
+  <title>Administration | EC Framework</title>
+  <link rel="stylesheet" href="../../core/css/framework.css">
+  <script type="module" src="../../modules/admin/dashboard.js"></script>
+</head>
+<body>
+  <a class="ec-skip-link" href="#main">Skip to main content</a>
+  <header class="ec-site-header">
+    <div class="ec-shell ec-nav">
+      <a class="ec-brand" href="../../index.html"><span class="ec-brand__mark">EC</span><span>Administration Starter</span></a>
+      <button class="ec-button ec-button--secondary" type="button" data-ec-theme-toggle><span aria-hidden="true">◐</span><span data-theme-label>Black Onyx</span></button>
+    </div>
+  </header>
+  <main id="main" class="ec-section">
+    <div class="ec-shell ec-stack">
+      <div class="ec-cluster" style="justify-content:space-between">
+        <div><p class="ec-eyebrow">Back office</p><h1>Operations overview</h1></div>
+        <button class="ec-button" type="button" data-add-demo>Add sample inquiry</button>
+      </div>
+      <div class="ec-grid ec-grid--2">
+        <article class="ec-card"><p class="ec-muted">Total inquiries</p><h2 data-ec-bind="metrics.inquiries">0</h2></article>
+        <article class="ec-card"><p class="ec-muted">New inquiries</p><h2 data-ec-bind="metrics.new">0</h2></article>
+      </div>
+      <section class="ec-card">
+        <h2>Recent inquiries</h2>
+        <div class="ec-table-wrap"><table class="ec-table"><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Created</th></tr></thead><tbody data-inquiry-rows></tbody></table></div>
+      </section>
+      <div class="ec-alert">This demonstration uses browser storage. Connect the optional Supabase integration only after the project's tables and RLS policies are ready.</div>
+    </div>
+  </main>
+</body>
+</html>
