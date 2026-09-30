@@ -56,6 +56,26 @@ const setFeaturedEpisode = async () => {
       watch.rel = 'noopener';
     }
 
+    if (Array.isArray(episode.recentEpisodes)) {
+      document.querySelectorAll('[data-recent-episode]').forEach(cardEl => {
+        const item = episode.recentEpisodes[Number(cardEl.dataset.recentEpisode)];
+        if (!item) return;
+        const art = cardEl.querySelector('.kipg-episode-card__art');
+        const titleEl = cardEl.querySelector('.kipg-episode-card__art strong');
+        const metaEl = cardEl.querySelector('.kipg-episode-card__meta');
+        if (art && item.thumbnail) art.style.backgroundImage = `url("${item.thumbnail}")`;
+        if (titleEl) titleEl.textContent = item.title || 'KIPG Podcast';
+        if (metaEl) metaEl.textContent = item.episodeNumber
+          ? `Episode ${item.episodeNumber} • KIPG Podcast`
+          : 'KIPG Podcast';
+        if (item.watchUrl) {
+          cardEl.href = item.watchUrl;
+          cardEl.target = '_blank';
+          cardEl.rel = 'noopener';
+        }
+      });
+    }
+
     const play = card.querySelector('.kipg-feature-play');
     if (play && episode.watchUrl) {
       play.addEventListener('click', () => window.open(episode.watchUrl, '_blank', 'noopener'));
