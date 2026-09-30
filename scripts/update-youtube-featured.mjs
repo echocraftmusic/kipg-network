@@ -64,16 +64,39 @@ const title = chosen.snippet?.title || 'KIPG Podcast';
 const episodeMatch = title.match(/\b(?:EP(?:ISODE)?\.?\s*)?(\d{1,3})\b/i);
 const description = (chosen.snippet?.description || '').replace(/\s+/g, ' ').trim();
 
+const recentEpisodes = playlist.items
+  .map(playlistItem => {
+    const id = playlistItem.contentDetails?.videoId || playlistItem.snippet?.resourceId?.videoId;
+    const video = byId.get(id);
+    if (!video || video.status?.privacyStatus === 'private') return null;
+    const itemTitle = video.snippet?.title || 'KIPG Podcast';
+    const itemThumbs = video.snippet?.thumbnails || {};
+    const itemThumbnail = itemThumbs.maxres?.url || itemThumbs.standard?.url || itemThumbs.high?.url || itemThumbs.medium?.url || itemThumbs.default?.url || '';
+    const itemEpisodeMatch = itemTitle.match(/(?:EP(?:ISODE)?\.?\s*)(\d{1,3})\b/i);
+    return {
+      videoId: video.id,
+      title: itemTitle,
+      thumbnail: itemThumbnail,
+      publishedAt: video.snippet?.publishedAt || null,
+      episodeNumber: itemEpisodeMatch ? itemEpisodeMatch[1] : null,
+      liveBroadcastContent: video.snippet?.liveBroadcastContent || 'none',
+      watchUrl: `https://www.youtube.com/watch?v=${video.id}`
+    };
+  })
+  .filter(Boolean)
+  .slice(0, 4);
+
 const data = {
   generatedAt: new Date().toISOString(),
   playlistId,
   videoId: chosen.id,
   title,
-  description: description.slice(0, 220),
+  description: description.slice(0, 420),
   thumbnail,
   publishedAt: chosen.snippet?.publishedAt || null,
   episodeNumber: episodeMatch ? episodeMatch[1] : null,
-  watchUrl: `https://www.youtube.com/watch?v=${chosen.id}`
+  watchUrl: `https://www.youtube.com/watch?v=${chosen.id}`,
+  recentEpisodes
 };
 
 await fs.mkdir(path.dirname(outFile), { recursive: true });
