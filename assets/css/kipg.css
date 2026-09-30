@@ -725,3 +725,117 @@ body::before { display:none; }
   .kipg-youtube-showcase { grid-template-columns:1fr; }
   .kipg-youtube-showcase__logo { width:min(70vw,280px); }
 }
+
+
+/* Phase 10 — full-width featured episode + live recent playlist thumbnails */
+.kipg-feature-grid {
+  grid-template-columns:1fr;
+}
+
+.kipg-feature-card {
+  grid-template-columns:minmax(0,1.35fr) minmax(360px,.65fr);
+  border:2px solid transparent;
+  background:
+    linear-gradient(#070707,#070707) padding-box,
+    var(--kipg-gold-edge) border-box;
+}
+
+.kipg-feature-art {
+  min-height:0;
+  aspect-ratio:16/9;
+  background:#000;
+}
+
+.kipg-youtube-thumbnail {
+  background-size:contain;
+  background-position:center;
+  background-color:#000;
+}
+
+.kipg-youtube-thumbnail::after {
+  background:linear-gradient(180deg,rgba(0,0,0,.01) 58%,rgba(0,0,0,.16) 100%);
+}
+
+.kipg-feature-copy {
+  min-height:100%;
+}
+
+.kipg-feature-copy p {
+  line-height:1.65;
+}
+
+.kipg-episode-card {
+  border:2px solid transparent;
+  background:
+    linear-gradient(var(--ec-surface),var(--ec-surface)) padding-box,
+    var(--kipg-gold-edge) border-box;
+  box-shadow:0 10px 26px rgba(0,0,0,.16);
+}
+
+.kipg-episode-card__art {
+  position:relative;
+  padding:0;
+  background:#050505 center/cover no-repeat;
+}
+
+.kipg-episode-card__art::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.78) 100%);
+}
+
+.kipg-episode-card__art strong {
+  position:absolute;
+  z-index:1;
+  left:.75rem;
+  right:.75rem;
+  bottom:.7rem;
+  font-size:.95rem;
+  text-shadow:0 2px 8px rgba(0,0,0,.9);
+}
+
+.kipg-episode-card__meta {
+  min-height:42px;
+}
+
+.kipg-episode-card:hover {
+  transform:translateY(-2px);
+  box-shadow:0 14px 30px rgba(0,0,0,.24);
+}
+
+.kipg-live-row {
+  border:2px solid transparent;
+  background:
+    linear-gradient(var(--ec-surface),var(--ec-surface)) padding-box,
+    var(--kipg-gold-edge) border-box;
+}
+
+[data-ec-theme="kipg-light"] .kipg-feature-card {
+  background:
+    linear-gradient(#fffdf9,#fffdf9) padding-box,
+    var(--kipg-gold-edge) border-box;
+}
+
+[data-ec-theme="kipg-light"] .kipg-episode-card,
+[data-ec-theme="kipg-light"] .kipg-live-row {
+  background:
+    linear-gradient(rgba(255,255,255,.94),rgba(255,255,255,.94)) padding-box,
+    var(--kipg-gold-edge) border-box;
+}
+
+@media (max-width:1050px) {
+  .kipg-feature-card {
+    grid-template-columns:1fr;
+  }
+  .kipg-feature-copy {
+    min-height:auto;
+  }
+}
+
+@media (max-width:640px) {
+  .kipg-feature-art {
+    aspect-ratio:16/9;
+    min-height:0;
+  }
+}
