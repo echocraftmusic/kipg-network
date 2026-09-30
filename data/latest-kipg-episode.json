@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-30T13:09:14.742Z",
+  "generatedAt": "2026-09-30T18:01:20.421Z",
   "playlistId": "PLWy7yBFqtc6o",
   "videoId": "Rq3mqGesBYk",
   "title": "The Dangers of Gossip & Slander: When Words Destroy | KIPG Podcast Ep. 13",
@@ -9,15 +9,6 @@
   "episodeNumber": "13",
   "watchUrl": "https://www.youtube.com/watch?v=Rq3mqGesBYk",
   "recentEpisodes": [
-    {
-      "videoId": "b-ng-F-5R7s",
-      "title": "The Value of Friendship | KIPG Podcast Ep. 14",
-      "thumbnail": "https://i.ytimg.com/vi/b-ng-F-5R7s/maxresdefault_live.jpg",
-      "publishedAt": "2026-09-26T22:20:09Z",
-      "episodeNumber": "14",
-      "liveBroadcastContent": "upcoming",
-      "watchUrl": "https://www.youtube.com/watch?v=b-ng-F-5R7s"
-    },
     {
       "videoId": "b-ng-F-5R7s",
       "title": "The Value of Friendship | KIPG Podcast Ep. 14",
@@ -44,6 +35,15 @@
       "episodeNumber": "12",
       "liveBroadcastContent": "none",
       "watchUrl": "https://www.youtube.com/watch?v=QInTAIsZhcQ"
+    },
+    {
+      "videoId": "jTCGdZ8-I2k",
+      "title": "Identifying Toxic Relationships | KIPG Podcast",
+      "thumbnail": "https://i.ytimg.com/vi/jTCGdZ8-I2k/maxresdefault.jpg",
+      "publishedAt": "2026-09-09T23:08:51Z",
+      "episodeNumber": null,
+      "liveBroadcastContent": "none",
+      "watchUrl": "https://www.youtube.com/watch?v=jTCGdZ8-I2k"
     }
   ]
 }
