@@ -64,11 +64,13 @@ const title = chosen.snippet?.title || 'KIPG Podcast';
 const episodeMatch = title.match(/\b(?:EP(?:ISODE)?\.?\s*)?(\d{1,3})\b/i);
 const description = (chosen.snippet?.description || '').replace(/\s+/g, ' ').trim();
 
+const seenRecentIds = new Set();
 const recentEpisodes = playlist.items
   .map(playlistItem => {
     const id = playlistItem.contentDetails?.videoId || playlistItem.snippet?.resourceId?.videoId;
     const video = byId.get(id);
-    if (!video || video.status?.privacyStatus === 'private') return null;
+    if (!video || video.status?.privacyStatus === 'private' || seenRecentIds.has(video.id)) return null;
+    seenRecentIds.add(video.id);
     const itemTitle = video.snippet?.title || 'KIPG Podcast';
     const itemThumbs = video.snippet?.thumbnails || {};
     const itemThumbnail = itemThumbs.maxres?.url || itemThumbs.standard?.url || itemThumbs.high?.url || itemThumbs.medium?.url || itemThumbs.default?.url || '';
