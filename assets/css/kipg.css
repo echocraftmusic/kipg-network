@@ -839,3 +839,15 @@ body::before { display:none; }
     min-height:0;
   }
 }
+
+/* Phase 1: episode browsing and in-network playback. */
+.kipg-library-controls {display:grid;grid-template-columns:2fr 1fr;gap:1.25rem;margin-bottom:1.5rem;}
+.kipg-library-controls label {display:block;margin-bottom:.5rem;}
+.kipg-library-controls input,.kipg-library-controls select {width:100%;font-size:1rem;min-height:48px;}
+.kipg-episode-card__art img {display:block;width:100%;height:100%;object-fit:cover;aspect-ratio:16/9;}
+.kipg-episode-card__art strong {color:#fff;}
+[data-watch-player] {aspect-ratio:16/9;width:100%;background:#050505;color:#fff;display:grid;place-items:center;}
+[data-watch-player] p {padding:1.5rem;}
+[data-watch-description] {max-width:75ch;}
+[data-library-error][hidden] {display:none;}
+@media(max-width:640px) {.kipg-library-controls {grid-template-columns:1fr;}}

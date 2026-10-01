@@ -7,12 +7,33 @@
   "contactPhone": "",
   "defaultTheme": "kipg-dark",
   "navigation": [
-    { "label": "Home", "href": "index.html" },
-    { "label": "Live", "href": "pages/live.html" },
-    { "label": "Shows", "href": "pages/shows.html" },
-    { "label": "Schedule", "href": "pages/schedule.html" },
-    { "label": "Community", "href": "pages/community.html" },
-    { "label": "Prayer", "href": "pages/prayer.html" },
-    { "label": "About", "href": "pages/about.html" }
+    {
+      "label": "Home",
+      "href": "index.html"
+    },
+    {
+      "label": "Watch",
+      "href": "pages/watch.html"
+    },
+    {
+      "label": "Shows",
+      "href": "pages/shows.html"
+    },
+    {
+      "label": "Schedule",
+      "href": "pages/schedule.html"
+    },
+    {
+      "label": "Community",
+      "href": "pages/community.html"
+    },
+    {
+      "label": "Prayer",
+      "href": "pages/prayer.html"
+    },
+    {
+      "label": "About",
+      "href": "pages/about.html"
+    }
   ]
 }

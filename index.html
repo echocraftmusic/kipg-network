@@ -6,7 +6,7 @@
   <meta name="description" content="KIPG Network — Faith. Conversation. Community. Home of KIPG Podcast and a growing network of meaningful Christian programming.">
   <meta name="theme-color" content="#050505">
   <title>KIPG Network | Faith. Conversation. Community.</title>
-  <link rel="stylesheet" href="core/css/framework.css">
+  <link rel="icon" href="assets/images/kipg-network-logo.png"><link rel="stylesheet" href="core/css/framework.css">
   <link rel="stylesheet" href="assets/css/kipg.css">
   <script type="module" src="core/js/app.js"></script>
   <script type="module" src="assets/js/kipg.js"></script>
@@ -22,7 +22,7 @@
       <button class="ec-icon-button kipg-nav__toggle" type="button" data-ec-nav-toggle aria-expanded="false" aria-controls="primary-links"><span aria-hidden="true">☰</span><span class="ec-sr-only">Open navigation</span></button>
       <div class="kipg-nav__links" id="primary-links" data-ec-nav-links data-open="false">
         <a href="index.html" aria-current="page">Home</a>
-        <a href="pages/live.html">Live</a>
+        <a href="pages/watch.html">Watch</a>
         <a href="pages/shows.html">Shows</a>
         <a href="pages/schedule.html">Schedule</a>
         <a href="pages/community.html">Community</a>
@@ -38,8 +38,8 @@
     <section class="kipg-hero" aria-labelledby="hero-title">
       <div class="kipg-shell kipg-hero__grid">
         <a class="kipg-host" href="pages/about.html#pg" aria-label="Meet PG">
-          <img src="assets/images/pg.jpg" alt="PG, KIPG co-host">
-          <span class="kipg-host__label"><strong>PG</strong><span>CO-HOST</span><em>Meet PG →</em></span>
+          <img src="assets/images/pg.jpg" alt="PG, KIPG host">
+          <span class="kipg-host__label"><strong>PG</strong><span>HOST</span><em>Meet PG →</em></span>
         </a>
 
         <div class="kipg-hero__center">
@@ -48,14 +48,14 @@
           <p class="kipg-tagline">Faith. Conversation. Community.</p>
           <p class="kipg-subtag">A network of shows, real people, and meaningful conversations that inform, inspire, and bring positive change.</p>
           <div class="kipg-hero__actions">
-            <a class="kipg-btn" href="#featured">▶ Watch Latest Episode</a>
+            <a class="kipg-btn" href="pages/watch.html">▶ Watch Latest Episode</a>
             <a class="kipg-btn kipg-btn--outline" href="pages/community.html">♟ Join the KIPG Family</a>
           </div>
         </div>
 
         <a class="kipg-host kipg-host--troy" href="pages/about.html#troy" aria-label="Meet Troy">
-          <img src="assets/images/troy.jpg" alt="Troy, KIPG co-host">
-          <span class="kipg-host__label"><strong>TROY</strong><span>CO-HOST</span><em>Meet Troy →</em></span>
+          <img src="assets/images/troy.jpg" alt="Troy, KIPG moderator">
+          <span class="kipg-host__label"><strong>TROY</strong><span>MODERATOR</span><em>Meet Troy →</em></span>
         </a>
       </div>
     </section>
@@ -74,7 +74,7 @@
       <div class="kipg-shell">
         <div class="kipg-section__head">
           <div><p class="kipg-kicker">Featured Episode</p><h2>This week on KIPG</h2></div>
-          <a class="kipg-section__link" href="pages/shows.html#kipg-podcast">View all episodes →</a>
+          <a class="kipg-section__link" href="pages/watch.html#episodes">View all episodes →</a>
         </div>
         <div class="kipg-feature-grid">
           <article class="kipg-feature-card">
@@ -88,8 +88,8 @@
               <p data-featured-description>Watch the newest KIPG Podcast episode that has already completed its premiere.</p>
               <div class="kipg-meta-row"><span>▶ Full episode</span><span>◌ Real conversation</span><span>♡ Community</span></div>
               <div class="ec-cluster ec-mt-6">
-                <a class="kipg-btn" href="pages/shows.html#kipg-podcast" data-featured-watch>▶ Watch Now</a>
-                <a class="kipg-btn kipg-btn--outline" href="pages/shows.html#kipg-podcast">More Episodes</a>
+                <a class="kipg-btn" href="pages/watch.html#episodes" data-featured-watch>▶ Watch Now</a>
+                <a class="kipg-btn kipg-btn--outline" href="pages/watch.html#episodes">More Episodes</a>
                 <a class="kipg-btn kipg-btn--outline" href="pages/shows.html">Explore Shows</a>
               </div>
             </div>
@@ -101,38 +101,34 @@
     <section class="kipg-section" style="padding-top:0">
       <div class="kipg-shell kipg-live-row">
         <article class="kipg-live-card">
-          <span class="kipg-live-pill">LIVE ON KIPG NETWORK</span>
-          <h3>Join the Conversation Live</h3>
-          <p>Watch premiere events, ask questions, show love, and connect with the KIPG family in real time.</p>
-          <a class="kipg-btn" href="pages/live.html">Watch Live Now →</a>
+          <span class="kipg-live-pill">WEDNESDAYS · 7 PM EASTERN</span>
+          <h3>Make time for the conversation</h3>
+          <p>Explore the weekly schedule and watch completed episodes here on KIPG Network.</p>
+          <a class="kipg-btn" href="pages/schedule.html">See the schedule</a>
         </article>
         <article class="kipg-family-card">
           <p class="kipg-kicker">Join the KIPG Family</p>
           <h3>Stay connected.</h3>
-          <p>Get new episodes, upcoming shows, encouragement and special announcements delivered to you.</p>
-          <form data-ec-form novalidate>
-            <label class="ec-sr-only" for="family-email">Email address</label>
-            <input id="family-email" name="email" type="email" placeholder="Your email address" required>
-            <button class="kipg-btn" type="submit">Join Now →</button>
-          </form>
+          <p>Connect through the conversations today. Member accounts and episode reminders are coming soon.</p>
+          <a class="kipg-btn" href="pages/community.html">Connect with KIPG</a>
         </article>
         <article class="kipg-prayer-card">
           <p class="kipg-kicker">Prayer Requests</p>
           <h3>We're Praying With You</h3>
-          <p>Share your prayer request and let our team and community stand with you.</p>
-          <a class="kipg-btn" href="pages/prayer.html">Submit a Prayer Request →</a>
+          <p>Find encouragement in faith and hope. Private prayer submissions are coming soon.</p>
+          <a class="kipg-btn" href="pages/prayer.html">Prayer &amp; encouragement</a>
         </article>
       </div>
     </section>
 
     <section class="kipg-section" style="padding-top:0">
       <div class="kipg-shell">
-        <div class="kipg-section__head"><div><p class="kipg-kicker">Recent Episodes</p><h2>Continue the conversation</h2></div><a class="kipg-section__link" href="pages/shows.html#kipg-podcast">View all episodes →</a></div>
+        <div class="kipg-section__head"><div><p class="kipg-kicker">Recent Episodes</p><h2>Continue the conversation</h2></div><a class="kipg-section__link" href="pages/watch.html#episodes">View all episodes →</a></div>
         <div class="kipg-recent" data-recent-episodes>
-          <a class="kipg-episode-card" href="pages/shows.html#kipg-podcast" data-recent-episode="0"><div class="kipg-episode-card__art"><strong>Episode 14</strong></div><div class="kipg-episode-card__meta">KIPG Podcast</div></a>
-          <a class="kipg-episode-card" href="pages/shows.html#kipg-podcast" data-recent-episode="1"><div class="kipg-episode-card__art"><strong>Episode 13</strong></div><div class="kipg-episode-card__meta">KIPG Podcast</div></a>
-          <a class="kipg-episode-card" href="pages/shows.html#kipg-podcast" data-recent-episode="2"><div class="kipg-episode-card__art"><strong>Episode 12</strong></div><div class="kipg-episode-card__meta">KIPG Podcast</div></a>
-          <a class="kipg-episode-card" href="pages/shows.html#kipg-podcast" data-recent-episode="3"><div class="kipg-episode-card__art"><strong>Episode 11</strong></div><div class="kipg-episode-card__meta">KIPG Podcast</div></a>
+          <a class="kipg-episode-card" href="pages/watch.html#episodes" data-recent-episode="0"><div class="kipg-episode-card__art"><strong>Episode 14</strong></div><div class="kipg-episode-card__meta">KIPG Podcast</div></a>
+          <a class="kipg-episode-card" href="pages/watch.html#episodes" data-recent-episode="1"><div class="kipg-episode-card__art"><strong>Episode 13</strong></div><div class="kipg-episode-card__meta">KIPG Podcast</div></a>
+          <a class="kipg-episode-card" href="pages/watch.html#episodes" data-recent-episode="2"><div class="kipg-episode-card__art"><strong>Episode 12</strong></div><div class="kipg-episode-card__meta">KIPG Podcast</div></a>
+          <a class="kipg-episode-card" href="pages/watch.html#episodes" data-recent-episode="3"><div class="kipg-episode-card__art"><strong>Episode 11</strong></div><div class="kipg-episode-card__meta">KIPG Podcast</div></a>
         </div>
       </div>
     </section>

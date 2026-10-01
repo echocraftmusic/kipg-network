@@ -1,53 +1,32 @@
-# KIPG Network — Build Notes
+# KIPG Network — Phase 1 Functionality
 
-## Current build
+Phase 1 uses the approved EC Framework design and the existing GitHub Pages site.
 
-This project is built from EC Framework v2.0.0 and is now branded for KIPG Network.
+## Working visitor flows
 
-Implemented in this first build:
+- Home → latest episode → playback inside KIPG Network.
+- Watch → episode search and topic filters → individual episode URL.
+- Shows → KIPG Podcast profile and episode library.
+- Schedule → next Wednesday at 7 PM America/New_York → calendar download.
+- About → host PG and moderator/producer Troy.
+- Community and Prayer clearly explain what is available today and what is coming next.
+- Mobile navigation, keyboard labels and saved dark/light theme work across pages.
 
-- KIPG Network homepage matching the approved visual direction.
-- Responsive desktop/tablet/mobile layout.
-- Dark mode and light mode with persisted user preference.
-- Reflective gold visual system.
-- Mother-of-pearl accent band carried into both themes.
-- Clickable PG and Troy hero images leading to their About sections.
-- KIPG Podcast retained as the flagship podcast identity.
-- KIPG Network used as the umbrella brand.
-- Featured episode area.
-- Expandable show/network structure.
-- Live viewing room placeholder for the future YouTube + native chat experience.
-- Community signup form foundation.
-- Prayer request form foundation.
-- Schedule page foundation.
-- About profiles for PG and Troy.
-- EC Framework verification passes.
+The old `pages/live.html` link remains available as an honest viewing-room introduction.
+Episode URLs use `pages/watch.html?episode=VIDEO_ID`; filters use `q` and `topic`.
 
-## Intentional placeholders for the next phase
+## Episode publishing
 
-The following are not faked in this build and should be connected only when the production services are selected:
+The existing hourly GitHub workflow runs `scripts/update-youtube-featured.mjs` using the existing `YOUTUBE_API_KEY` secret. It now paginates the full playlist and fetches video details in batches, producing a full `episodes` collection alongside the existing featured and recent records. Private/unlisted, upcoming and active streams are excluded. A failed sync preserves the previous data. Playlist order determines the featured episode.
 
-- YouTube episode URLs and unlisted premiere embeds.
-- Native live chat provider and moderation controls.
-- Member/account database.
-- Email reminder delivery.
-- Secure prayer request delivery/storage.
-- Creator/show onboarding system.
-- Dynamic CMS for shows and episodes.
-- Production analytics.
+The initial checked-in collection includes the four already verified episode records. The next successful sync fills the rest of the official playlist. Titles, descriptions and IDs are rendered as text; players accept only valid IDs from the published collection. Topic assignment uses title/description keywords, or an explicit `topics` array when available.
 
-## Local preview
+## Phase 2
 
-Run:
+Live chat requirement: the Wednesday room opens at 6:45 PM America/New_York, fifteen minutes before the 7 PM show. Chat is available during the live viewing window only, with a moderator control to close it after the show. Anyone may watch; sign-in is recommended for posting. Desktop chat sits beside the video; on phones it sits below. Server-side schedule enforcement, moderation and rate limits are required.
 
-```bash
-npm run serve
-```
+Still to implement: scheduled site-first premieres, accounts, live chat, moderation, email signup/reminders and private prayer delivery. No signup or prayer form currently pretends to collect submissions. The Wednesday calendar event is a single reminder for the next show, not a claim that a premiere is already live.
 
-Then open:
+## Verification
 
-http://localhost:8080
-
-## Domain
-
-Planned production domain: https://kipgnetwork.com
+Run `npm run verify` for required files, imports and asset links. Browser QA could not run in this environment because Chromium is unavailable. A browser verification script was prepared for playback selection, search, topics, recovery, calendar download, mobile navigation and theme preference. Schedule calculations are checked around daylight-saving transitions.
