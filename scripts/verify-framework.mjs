@@ -59,6 +59,7 @@ const textExtensions = new Set([".html", ".css", ".js", ".mjs", ".json", ".md", 
 const secretPatterns = [
   { name: "JWT-like credential", pattern: /eyJ[a-zA-Z0-9_-]{25,}\.[a-zA-Z0-9_-]{20,}\.[a-zA-Z0-9_-]{20,}/ },
   { name: "live Supabase hostname", pattern: /https:\/\/[a-z0-9]{15,}\.supabase\.co/i },
+  { name: "Supabase secret key", pattern: /sb_secret_[a-zA-Z0-9_-]{20,}/ },
   { name: "private key", pattern: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/ },
 ];
 
@@ -66,6 +67,8 @@ for (const file of await walk(root)) {
   if (!textExtensions.has(path.extname(file)) && !path.basename(file).startsWith(".env")) continue;
   const content = await readFile(file, "utf8");
   for (const check of secretPatterns) {
+    // Only this validated public configuration may contain a live project hostname.
+    if(check.name === "live Supabase hostname" && path.relative(root,file) === "data/community-auth.json")continue;
     if (check.pattern.test(content)) findings.push(`${path.relative(root, file)}: possible ${check.name}`);
   }
 
@@ -86,6 +89,8 @@ for (const file of await walk(root)) {
   }
 }
 
+const authConfig=JSON.parse(await readFile(path.join(root,"data/community-auth.json"),"utf8"));
+if(Object.keys(authConfig).sort().join(',')!=='projectUrl,publishableKey' || !/^https:\/\/[a-z0-9]{20}\.supabase\.co$/.test(authConfig.projectUrl) || !/^sb_publishable_[a-zA-Z0-9_-]+$/.test(authConfig.publishableKey))findings.push('Invalid public community auth configuration.');
 JSON.parse(await readFile(path.join(root, "core/config/site.json"), "utf8"));
 JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
 
