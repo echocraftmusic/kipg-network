@@ -69,3 +69,9 @@ Chat is a reserved, responsive panel, not a functioning messaging service. Its s
 Run `node --test scripts/room-state.test.mjs` for the room boundary, timing, early-end, URL validation and EST/EDT checks. A real unlisted video and a multi-user rehearsal are required before launch. Beautification remains last.
 
 Local Chromium installation failed, but cloud-browser verification succeeded on the published site: Theater 1 loaded, navigation reached Projector 1, Play Now created a browser-only rehearsal, and Join the show loaded Episode 14 in the YouTube player with active playback/captions and the catch-up control. Desktop layout was visually inspected. GitHub's Viewing Room checks and Pages deployment passed. Mobile-device and multi-user/backend verification remain required before launch.
+
+### Theater 1 functional rehearsal update
+
+Projector 1 now has collapsible browser rehearsal controls directly in the room. Paste a YouTube link, set title/duration, then use Play Now or Schedule. These are local test controls, not authenticated administration. Video file uploads still require a video-storage service.
+
+The conversation sidebar has a bounded scrolling viewport and an anchored composer. Rehearsal messages render safely as text, newest at the bottom, with Enter to send and Shift+Enter for a line break; scrolling back preserves the reader’s position and shows a New messages button. Messages are stored only in this browser and capped at 100 per rehearsal. Posting opens in the lobby/playing phases and closes at the session end. Public posting remains disabled until a shared backend and sign-in/moderation are implemented.

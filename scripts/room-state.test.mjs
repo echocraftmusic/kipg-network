@@ -33,3 +33,14 @@ test('Eastern display follows daylight-saving changes',()=>{
   assert.match(easternTime('2026-10-07T23:00:00Z'),/7:00 PM EDT/);
   assert.match(easternTime('2026-11-04T00:00:00Z'),/7:00 PM EST/);
 });
+
+test('chat rehearsal requires an open session and never enables public posting',async()=>{
+  const {chatCanPost,messageText}=await import('../assets/js/room-chat.js');
+  assert.equal(chatCanPost(null,{chatWindow:true}),false);
+  assert.equal(chatCanPost('rehearsal',{chatWindow:true}),true);
+  assert.equal(chatCanPost('rehearsal',roomState(session,start+3600000)),false);
+  assert.equal(messageText('   hello   '),'hello');
+  assert.equal(messageText(' '.repeat(10)),'');
+  assert.equal(messageText('x'.repeat(600)).length,500);
+  assert.equal(messageText(null),'');
+});

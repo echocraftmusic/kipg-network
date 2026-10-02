@@ -1,8 +1,13 @@
 import {roomState,easternTime} from './room-state.js';
+import {attachChat} from './room-chat.js';
 const $ = selector => document.querySelector(selector);
 const params = new URL(location.href).searchParams;
 const roomId = params.get('room') || 'theater-1';
 const rehearsalId = params.get('rehearsal');
+const chat=attachChat(rehearsalId);
+const sizeChat=()=>{const height=$('.vr-screen').getBoundingClientRect().height+$('.vr-screen-controls').getBoundingClientRect().height;$('.vr-chat').style.setProperty('--vr-chat-height',`${height}px`);};
+new ResizeObserver(sizeChat).observe($('.vr-screen'));
+new ResizeObserver(sizeChat).observe($('.vr-screen-controls'));
 let room, session, player, ready=false, joined=false, activeId, ended=false, runtimeDuration, apiPromise, lastPhase, failures=0;
 function state() { return roomState(runtimeDuration ? {...session,durationSeconds:runtimeDuration} : session); }
 function api() {
@@ -51,14 +56,15 @@ async function startPlayer() {
 function tick() {
   if(!room)return;
   const current=state();
+  chat.update(current);
   const labels={idle:'No session scheduled',scheduled:'Scheduled',lobby:'Room open',playing:'Now showing',ended:'Session ended'};
   if(current.phase!==lastPhase){$('[data-room-status]').textContent=labels[current.phase];lastPhase=current.phase;}
   $('[data-join]').disabled=!['lobby','playing'].includes(current.phase);
   $('[data-join]').textContent=current.phase==='lobby' ? (joined?'Your seat is ready':'Take your seat') : 'Join the show';
   $('[data-join]').hidden=joined && current.phase==='playing';
   $('[data-catch-up]').hidden=!(ready && current.phase==='playing');
-  $('[data-chat-status]').textContent=current.chatWindow?'Setup pending':'Closed';
-  $('[data-chat-copy]').textContent=current.chatWindow ? 'This session’s chat window is open, but posting is not available yet. We’re preparing the KIPG community conversation.' : 'Chat is not available yet. It will open with the room and close when the shared episode ends.';
+  $('[data-chat-status]').textContent=current.chatWindow?(rehearsalId?'Local rehearsal':'Not connected'):'Closed';
+  $('[data-chat-copy]').textContent=rehearsalId ? 'Test the message layout here. These messages are visible only in this browser.' : current.chatWindow ? 'This session’s chat window is open, but posting is not available yet. We’re preparing the KIPG community conversation.' : 'Chat is not available yet. It will open with the room and close when the shared episode ends.';
   if(current.phase==='idle')curtain('Projector 1 · Standing by','Your seat is waiting','Our next shared viewing will appear here when it is scheduled.');
   if(current.phase==='scheduled')curtain('Theater 1 · Scheduled',session.title,`The room opens ${easternTime(current.opensAt)}.`);
   if(current.phase==='lobby')curtain('Theater 1 · Room open',session.title,`The episode begins ${easternTime(current.startsAt)}. Take your seat to join when it starts.`);
@@ -89,7 +95,7 @@ async function refresh() {
     else {const response=await fetch(new URL('../../data/viewing-rooms.json',import.meta.url),{cache:'no-store'});if(!response.ok)throw new Error('Room schedule unavailable.');data=await response.json();}
     const next=data?.rooms?.find(item=>item.id===roomId);if(!next)throw new Error('This room could not be found. Return to Theater 1 or create a new rehearsal.');
     setRoom(next);failures=0;
-  } catch(error){failures++;$('[data-player-notice]').textContent=error.message;if(!room || failures>=3){room=null;clearPlayer();$('[data-room-status]').textContent='Room unavailable';$('[data-join]').disabled=true;curtain('Please try again','The room could not load','Reload this page to reconnect to the session.');}}
+  } catch(error){failures++;$('[data-player-notice]').textContent=error.message;if(!room || failures>=3){room=null;chat.update({chatWindow:false});clearPlayer();$('[data-room-status]').textContent='Room unavailable';$('[data-join]').disabled=true;curtain('Please try again','The room could not load','Reload this page to reconnect to the session.');}}
 }
 $('[data-join]').addEventListener('click',()=>{joined=true;tick();});
 $('[data-catch-up]').addEventListener('click',()=>{if(ready && state().phase==='playing'){player.seekTo(state().position,true);player.playVideo();}});
