@@ -1,5 +1,5 @@
 import {roomState,easternTime} from './room-state.js?v=20261002-room-timing';
-import {attachChat} from './room-chat.js?v=20261002-emojis';
+import {attachChat} from './room-chat.js?v=20261002-room-timing';
 const $ = selector => document.querySelector(selector);
 const params = new URL(location.href).searchParams;
 const roomId = params.get('room') || 'theater-1';
