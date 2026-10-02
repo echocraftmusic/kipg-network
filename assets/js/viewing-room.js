@@ -22,12 +22,21 @@ function setWide(wide){
 }
 wideButton.addEventListener('click',()=>setWide(!layout.classList.contains('vr-layout--wide')));
 $('[data-restore-chat]').addEventListener('click',()=>{setWide(false);wideButton.focus();});
-fullscreenButton.disabled=!document.fullscreenEnabled;
+function maximizeFallback(active){
+  screen.classList.toggle('vr-screen--maximized',active);
+  document.body.classList.toggle('vr-video-maximized',active);
+  $('[data-exit-fullscreen]').hidden=!active;
+  if(!active)fullscreenButton.focus();
+}
 fullscreenButton.addEventListener('click',async()=>{
   try {await screen.requestFullscreen();}
-  catch {$('[data-player-notice]').textContent='Fullscreen is unavailable in this browser. Use Expand video for a wider view.';}
+  catch {maximizeFallback(true);}
 });
-$('[data-exit-fullscreen]').addEventListener('click',()=>document.exitFullscreen().catch(()=>{}));
+$('[data-exit-fullscreen]').addEventListener('click',()=>{
+  if(document.fullscreenElement===screen)document.exitFullscreen().catch(()=>{});
+  else maximizeFallback(false);
+});
+document.addEventListener('keydown',event=>{if(event.key==='Escape' && screen.classList.contains('vr-screen--maximized'))maximizeFallback(false);});
 document.addEventListener('fullscreenchange',()=>{
   const full=document.fullscreenElement===screen;
   $('[data-exit-fullscreen]').hidden=!full;

@@ -78,3 +78,5 @@ The conversation sidebar has a bounded scrolling viewport and an anchored compos
 
 ### Viewer sizing controls
 Desktop chat height now matches the video screen itself, excluding controls and program details. Expand video collapses chat to a narrow Show chat rail while preserving the player and messages. Fullscreen video uses the browser Fullscreen API on the screen only; Escape or Exit fullscreen returns to the room. Mobile keeps a practical separate chat height and can hide chat using the same toggle.
+
+If native fullscreen is declined or unsupported, the video fills the browser viewport instead; Exit fullscreen or Escape restores the room.
