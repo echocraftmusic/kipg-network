@@ -83,3 +83,6 @@ If native fullscreen is declined or unsupported, the video fills the browser vie
 
 ### Aligned viewing cards
 Chat now matches the complete video card, including the viewer button row. A ResizeObserver follows the video card height as controls wrap or the video expands. On the projector is a separate full-width card beneath the viewing row, separated by the same spacing as the two viewing cards. Player notices sit below that row rather than changing its alignment.
+
+### Chat width and emoji picker
+Messages now stretch across the available chat width rather than inheriting centered flex alignment; reduced horizontal padding leaves more space for long sentences. A labeled Emoji button opens a 36-choice keyboard with keyboard-accessible named buttons, Close/Escape/outside-click dismissal, insertion at the text cursor, and the same 500-character message limit. It is enabled only during the local rehearsal chat window, like the composer.

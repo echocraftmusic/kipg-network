@@ -71,7 +71,7 @@ for (const file of await walk(root)) {
 
   if (path.extname(file) === ".js" || path.extname(file) === ".mjs") {
     for (const match of content.matchAll(/(?:import|export)\s+(?:[^"']+?\s+from\s+)?["'](\.[^"']+)["']/g)) {
-      const target = path.resolve(path.dirname(file), match[1]);
+      const target = path.resolve(path.dirname(file), match[1].split(/[?#]/)[0]);
       try { await stat(target); } catch { findings.push(`${path.relative(root, file)}: unresolved import ${match[1]}`); }
     }
   }
