@@ -10,8 +10,9 @@ const layout=$('.vr-layout');
 const chatPanel=$('.vr-chat');
 const wideButton=$('[data-wide-video]');
 const fullscreenButton=$('[data-fullscreen-video]');
-const sizeChat=()=>{const height=`${screen.getBoundingClientRect().height+2}px`;chatPanel.style.setProperty('--vr-chat-height',height);$('[data-chat-rail]').style.setProperty('--vr-chat-height',height);};
-new ResizeObserver(sizeChat).observe(screen);
+const sizeChat=()=>{const height=`${$('.vr-theater').getBoundingClientRect().height}px`;chatPanel.style.setProperty('--vr-chat-height',height);$('[data-chat-rail]').style.setProperty('--vr-chat-height',height);};
+new ResizeObserver(sizeChat).observe($('.vr-theater'));
+sizeChat();
 function setWide(wide){
   layout.classList.toggle('vr-layout--wide',wide);
   chatPanel.hidden=wide;
