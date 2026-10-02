@@ -6,7 +6,7 @@
   "description": "Echo Craft Studio reusable website and application framework.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
-    "verify": "node scripts/verify-framework.mjs"
+    "verify": "node scripts/verify-framework.mjs",
+    "test:youtube": "node --test scripts/youtube-episode-data.test.mjs"
   }
 }
-
