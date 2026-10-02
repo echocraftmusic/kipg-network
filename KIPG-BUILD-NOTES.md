@@ -68,4 +68,4 @@ Chat is a reserved, responsive panel, not a functioning messaging service. Its s
 
 Run `node --test scripts/room-state.test.mjs` for the room boundary, timing, early-end, URL validation and EST/EDT checks. A real unlisted video and a multi-user rehearsal are required before launch. Beautification remains last.
 
-Browser visual/playback QA remains outstanding: the environment's Chromium download failed. Automated timing and source/link checks pass, but desktop/mobile rendering and actual YouTube playback must be verified in a browser before launch.
+Local Chromium installation failed, but cloud-browser verification succeeded on the published site: Theater 1 loaded, navigation reached Projector 1, Play Now created a browser-only rehearsal, and Join the show loaded Episode 14 in the YouTube player with active playback/captions and the catch-up control. Desktop layout was visually inspected. GitHub's Viewing Room checks and Pages deployment passed. Mobile-device and multi-user/backend verification remain required before launch.
