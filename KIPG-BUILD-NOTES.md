@@ -75,3 +75,6 @@ Local Chromium installation failed, but cloud-browser verification succeeded on 
 Projector 1 now has collapsible browser rehearsal controls directly in the room. Paste a YouTube link, set title/duration, then use Play Now or Schedule. These are local test controls, not authenticated administration. Video file uploads still require a video-storage service.
 
 The conversation sidebar has a bounded scrolling viewport and an anchored composer. Rehearsal messages render safely as text, newest at the bottom, with Enter to send and Shift+Enter for a line break; scrolling back preserves the reader’s position and shows a New messages button. Messages are stored only in this browser and capped at 100 per rehearsal. Posting opens in the lobby/playing phases and closes at the session end. Public posting remains disabled until a shared backend and sign-in/moderation are implemented.
+
+### Viewer sizing controls
+Desktop chat height now matches the video screen itself, excluding controls and program details. Expand video collapses chat to a narrow Show chat rail while preserving the player and messages. Fullscreen video uses the browser Fullscreen API on the screen only; Escape or Exit fullscreen returns to the room. Mobile keeps a practical separate chat height and can hide chat using the same toggle.

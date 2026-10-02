@@ -5,9 +5,34 @@ const params = new URL(location.href).searchParams;
 const roomId = params.get('room') || 'theater-1';
 const rehearsalId = params.get('rehearsal');
 const chat=attachChat(rehearsalId);
-const sizeChat=()=>{const height=$('.vr-screen').getBoundingClientRect().height+$('.vr-screen-controls').getBoundingClientRect().height;$('.vr-chat').style.setProperty('--vr-chat-height',`${height}px`);};
-new ResizeObserver(sizeChat).observe($('.vr-screen'));
-new ResizeObserver(sizeChat).observe($('.vr-screen-controls'));
+const screen=$('.vr-screen');
+const layout=$('.vr-layout');
+const chatPanel=$('.vr-chat');
+const wideButton=$('[data-wide-video]');
+const fullscreenButton=$('[data-fullscreen-video]');
+const sizeChat=()=>{const height=`${screen.getBoundingClientRect().height+2}px`;chatPanel.style.setProperty('--vr-chat-height',height);$('[data-chat-rail]').style.setProperty('--vr-chat-height',height);};
+new ResizeObserver(sizeChat).observe(screen);
+function setWide(wide){
+  layout.classList.toggle('vr-layout--wide',wide);
+  chatPanel.hidden=wide;
+  $('[data-chat-rail]').hidden=!wide;
+  wideButton.textContent=wide?'Show chat':'Expand video';
+  wideButton.setAttribute('aria-pressed',String(wide));
+  if(wide && chatPanel.contains(document.activeElement))wideButton.focus();
+}
+wideButton.addEventListener('click',()=>setWide(!layout.classList.contains('vr-layout--wide')));
+$('[data-restore-chat]').addEventListener('click',()=>{setWide(false);wideButton.focus();});
+fullscreenButton.disabled=!document.fullscreenEnabled;
+fullscreenButton.addEventListener('click',async()=>{
+  try {await screen.requestFullscreen();}
+  catch {$('[data-player-notice]').textContent='Fullscreen is unavailable in this browser. Use Expand video for a wider view.';}
+});
+$('[data-exit-fullscreen]').addEventListener('click',()=>document.exitFullscreen().catch(()=>{}));
+document.addEventListener('fullscreenchange',()=>{
+  const full=document.fullscreenElement===screen;
+  $('[data-exit-fullscreen]').hidden=!full;
+  if(!full)fullscreenButton.focus();
+});
 let room, session, player, ready=false, joined=false, activeId, ended=false, runtimeDuration, apiPromise, lastPhase, failures=0;
 function state() { return roomState(runtimeDuration ? {...session,durationSeconds:runtimeDuration} : session); }
 function api() {
