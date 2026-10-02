@@ -1,4 +1,4 @@
-import {roomState,easternTime} from './room-state.js';
+import {roomState,easternTime} from './room-state.js?v=20261002-room-timing';
 import {attachChat} from './room-chat.js?v=20261002-emojis';
 const $ = selector => document.querySelector(selector);
 const params = new URL(location.href).searchParams;
@@ -83,7 +83,7 @@ async function startPlayer() {
       onError:()=>{$('[data-player-notice]').textContent='This video could not play. It may be unavailable or have embedding disabled. Ask the host to check the Projector link.';},
       onStateChange:event=>{
         if(event.data===1){const duration=player.getDuration();if(duration>0)runtimeDuration=duration;}
-        if(event.data===0 && state().phase!=='ended')$('[data-player-notice]').textContent='Your player reached the end. The room’s shared session window determines when the event closes.';
+        if(event.data===0 && state().phase==='playing')$('[data-player-notice]').textContent='Your player reached the end. The room’s shared session window determines when the event closes.';
       }
     }});
   } catch(error){ended=false;apiPromise=null;$('[data-player-notice]').textContent=error.message;joined=false;clearPlayer();tick();}
@@ -92,22 +92,31 @@ function tick() {
   if(!room)return;
   const current=state();
   chat.update(current);
-  const labels={idle:'No session scheduled',scheduled:'Scheduled',lobby:'Room open',playing:'Now showing',ended:'Session ended'};
+  const phaseChanged=current.phase!==lastPhase;
+  const labels={idle:'No session scheduled',scheduled:'Scheduled',lobby:'Room open',playing:'Now showing',aftershow:'Goodbye chat · 5 minutes',ended:'Session ended'};
   if(current.phase!==lastPhase){$('[data-room-status]').textContent=labels[current.phase];lastPhase=current.phase;}
   $('[data-join]').disabled=!['lobby','playing'].includes(current.phase);
   $('[data-join]').textContent=current.phase==='lobby' ? (joined?'Your seat is ready':'Take your seat') : 'Join the show';
   $('[data-join]').hidden=joined && current.phase==='playing';
+  $('[data-live-indicator]').hidden=current.phase!=='playing' || joined;
+  $('[data-join-area]').hidden=joined && current.phase==='playing';
+  $('[data-countdown]').hidden=current.countdownSeconds==null;
+  $('[data-countdown]').textContent=current.countdownSeconds==null?'':`Starting in ${Math.floor(current.countdownSeconds/60)}:${String(current.countdownSeconds%60).padStart(2,'0')}`;
   $('[data-catch-up]').hidden=!(ready && current.phase==='playing');
   $('[data-chat-status]').textContent=current.chatWindow?(rehearsalId?'Local rehearsal':'Not connected'):'Closed';
-  $('[data-chat-copy]').textContent=rehearsalId ? 'Test the message layout here. These messages are visible only in this browser.' : current.chatWindow ? 'This session’s chat window is open, but posting is not available yet. We’re preparing the KIPG community conversation.' : 'Chat is not available yet. It will open with the room and close when the shared episode ends.';
+  $('[data-chat-copy]').textContent=rehearsalId ? 'Test the message layout here. These messages are visible only in this browser.' : current.chatWindow ? 'This session’s chat window is open, but posting is not available yet. We’re preparing the KIPG community conversation.' : 'Chat is not available yet. It will open with the room and remain open for five minutes after the shared episode ends.';
   if(current.phase==='idle')curtain('Projector 1 · Standing by','Your seat is waiting','Our next shared viewing will appear here when it is scheduled.');
   if(current.phase==='scheduled')curtain('Theater 1 · Scheduled',session.title,`The room opens ${easternTime(current.opensAt)}.`);
-  if(current.phase==='lobby')curtain('Theater 1 · Room open',session.title,`The episode begins ${easternTime(current.startsAt)}. Take your seat to join when it starts.`);
+  if(current.phase==='lobby')curtain('Theater 1 · Starting soon',session.title,`The episode begins ${easternTime(current.startsAt)}. ${joined?'Your seat is ready. Playback will begin when the show starts.':'Take your seat and say hello in chat while we get ready.'}`);
   if(current.phase==='playing'){
     if(joined)startPlayer();else curtain('Projector 1 · Now showing',session.title,'Join the show at the room’s current playback position.');
   }
+  if(current.phase==='aftershow'){
+    if(ready && phaseChanged)player.stopVideo();
+    curtain('Theater 1 · Goodbye chat','Thank you for joining us',`Stay a little longer to say goodbye. Chat closes ${easternTime(current.closesAt)}.`);
+  }
   if(current.phase==='ended'){
-    if(ready)player.stopVideo();
+    if(ready && phaseChanged)player.stopVideo();
     curtain('Theater 1 · Session ended','Thank you for joining us','This viewing session and its chat window have closed. Browse completed episodes while we prepare the next gathering.');
   }
 }
@@ -120,7 +129,7 @@ function setRoom(next) {
   $('[data-session-title]').textContent=session?.title || 'No session scheduled';
   $('[data-session-summary]').textContent=session?.summary || 'Our next shared KIPG viewing will be announced here.';
   $('[data-start-time]').textContent=session ? easternTime(session.startsAt) : 'To be announced';
-  $('[data-chat-time]').textContent=session ? `${easternTime(session.opensAt || session.startsAt)} until the episode ends` : 'Opens with the room · closes with the episode';
+  $('[data-chat-time]').textContent=session ? `${easternTime(session.opensAt || session.startsAt)} until five minutes after the episode ends` : 'Opens with the room · closes five minutes after the episode';
   tick();
 }
 async function refresh() {

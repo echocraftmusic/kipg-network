@@ -64,6 +64,6 @@ export function attachChat(rehearsalId) {
   return {update(state){
     allowed=chatCanPost(rehearsalId,state);input.disabled=!allowed;send.disabled=!allowed;emojiToggle.disabled=!allowed;if(!allowed)closePicker();
     input.placeholder=allowed?'Type a rehearsal message…':rehearsalId?'This session’s chat is closed':'Chat is not connected yet';
-    hint.textContent=rehearsalId?'Local rehearsal · messages stay in this browser':'Chat opens with the room and closes with the episode.';
+    hint.textContent=rehearsalId?'Local rehearsal · messages stay in this browser':'Chat opens with the room and closes five minutes after the episode.';
   }};
 }

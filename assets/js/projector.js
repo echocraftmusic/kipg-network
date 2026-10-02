@@ -1,4 +1,4 @@
-import {youtubeId,easternTime} from './room-state.js';
+import {youtubeId,easternTime,sessionTiming} from './room-state.js?v=20261002-room-timing';
 const form=document.querySelector('[data-projector-form]');
 const error=document.querySelector('[data-projector-error]');
 let saved=[];
@@ -26,10 +26,10 @@ form.addEventListener('submit',event=>{
   if(!videoId){error.textContent='Enter a valid YouTube link or 11-character video ID.';return;}
   if(!title || durationMinutes<=0 || durationMinutes>720){error.textContent='Enter a title and an episode length between 1 and 720 minutes.';return;}
   const mode=event.submitter?.value || 'now';
-  const startsAt=mode==='schedule' ? new Date(form.elements.start.value) : new Date();
-  if(!Number.isFinite(startsAt.getTime()) || (mode==='schedule' && startsAt.getTime()<=Date.now())){error.textContent='Choose a future start time for the scheduled rehearsal.';return;}
+  let timing;
+  try{timing=sessionTiming(mode,form.elements.start.value);}catch(failure){error.textContent=failure.message;return;}
   const id=crypto.randomUUID();
-  const session={id,videoId,title,durationSeconds:durationMinutes*60,startsAt:startsAt.toISOString(),opensAt:new Date(mode==='now'?startsAt.getTime():startsAt.getTime()-15*60000).toISOString(),summary:'Projector 1 browser rehearsal.'};
+  const session={id,videoId,title,durationSeconds:durationMinutes*60,...timing,summary:'Projector 1 browser rehearsal.'};
   const data={version:1,rooms:[{id:'theater-1',name:'Theater 1',projectorId:'projector-1',projectorName:'Projector 1',session}]};
   try {
     saved=[{videoId,title,durationMinutes},...saved.filter(item=>item.videoId!==videoId)].slice(0,20);
