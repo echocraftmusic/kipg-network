@@ -1,0 +1,28 @@
+name: Verify KIPG Viewing Room
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'assets/js/room-state.js'
+      - 'assets/js/viewing-room.js'
+      - 'assets/js/projector.js'
+      - 'assets/css/viewing-room.css'
+      - 'pages/**'
+      - 'data/viewing-rooms.json'
+      - 'scripts/room-state.test.mjs'
+      - '.github/workflows/verify-viewing-room.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm run verify
+      - run: npm run test:room
+      - run: npm run test:youtube
+      - run: node --check assets/js/viewing-room.js && node --check assets/js/projector.js

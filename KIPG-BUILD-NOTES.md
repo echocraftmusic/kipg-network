@@ -55,3 +55,17 @@ Beautification is the final Phase 1 step, after the Viewing Room, chat and other
 ## Verification
 
 Run `npm run verify` for required files, imports and asset links. Browser QA could not run in this environment because Chromium is unavailable. A browser verification script was prepared for playback selection, search, topics, recovery, calendar download, mobile navigation and theme preference. Schedule calculations are checked around daylight-saving transitions.
+
+## Viewing Room foundation — Theater 1 / Projector 1
+
+`pages/live.html` is the responsive room display. `data/viewing-rooms.json` gives each room its own projector and optional session. The initial public room has no session: no episode has been supplied for the first rehearsal. The room is linked from primary navigation.
+
+The room reads `session.id`, `videoId`, `title`, `startsAt`, optional `opensAt`, `durationSeconds`, optional `endedAt`, and `summary`. UTC ISO timestamps identify absolute times; the UI shows America/New_York. Lobby, playing and ended phases share a single clock calculation. The published schedule is polled every 15 seconds. Video playback requires a viewer gesture; late joins seek to the current session position. “Return to the room’s position” resynchronizes a paused player. These are watch-party controls, not guaranteed frame-accurate synchronization or restricted video access. The API-reported video duration replaces the estimated duration once available in a loaded player.
+
+`pages/projector.html` provides clearly labeled browser-only Play Now and Schedule rehearsals, with up to 20 locally saved video choices. Rehearsal links depend on browser-local storage and are not invitations for other viewers. They cannot start or modify the published room. The public schedule can currently be changed through the repository JSON; authenticated shared host controls remain to build. No public admin button changes global state, and no credentials are embedded.
+
+Chat is a reserved, responsive panel, not a functioning messaging service. Its state follows the shared session lobby/end window and does not follow an individual pause or browser close. Server enforcement must mirror these boundaries when the backend is connected. Required next: accounts, host authorization, a trusted session clock, shared Play Now/Schedule writes, realtime chat, moderator roles, bans/timeouts, spam filtering, and server-side session-end checks. Future social/private chat rooms are outside this implementation. Theater/projector IDs allow later expansion without claiming additional rooms are already available.
+
+Run `node --test scripts/room-state.test.mjs` for the room boundary, timing, early-end, URL validation and EST/EDT checks. A real unlisted video and a multi-user rehearsal are required before launch. Beautification remains last.
+
+Browser visual/playback QA remains outstanding: the environment's Chromium download failed. Automated timing and source/link checks pass, but desktop/mobile rendering and actual YouTube playback must be verified in a browser before launch.

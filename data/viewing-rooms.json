@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "rooms": [
+    {
+      "id": "theater-1",
+      "name": "Theater 1",
+      "projectorId": "projector-1",
+      "projectorName": "Projector 1",
+      "session": null
+    }
+  ]
+}

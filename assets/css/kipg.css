@@ -851,3 +851,12 @@ body::before { display:none; }
 [data-watch-description] {max-width:75ch;}
 [data-library-error][hidden] {display:none;}
 @media(max-width:640px) {.kipg-library-controls {grid-template-columns:1fr;}}
+
+/* Keep the expanded Viewing Room navigation usable on narrower desktops. */
+@media (min-width:901px) and (max-width:1150px) {
+  .kipg-nav__toggle { display:inline-grid; margin-left:auto; }
+  .kipg-nav__links { position:absolute; top:calc(100% + 1px); left:1rem; right:1rem; display:none; padding:1rem; border:1px solid var(--ec-border); border-radius:.8rem; background:var(--ec-surface-strong); box-shadow:var(--ec-shadow-lg); }
+  .kipg-nav__links[data-open="true"] { display:grid; }
+  .kipg-nav__links a[aria-current="page"]::after { display:none; }
+  .kipg-theme,.kipg-join { width:100%; }
+}
