@@ -21,15 +21,14 @@ export function attachChat(rehearsalId) {
   function closePicker(focus=false){emojiPicker.hidden=true;emojiToggle.setAttribute('aria-expanded','false');if(focus)emojiToggle.focus();}
   emojiToggle.addEventListener('click',()=>{if(!allowed)return;emojiPicker.hidden=!emojiPicker.hidden;emojiToggle.setAttribute('aria-expanded',String(!emojiPicker.hidden));if(!emojiPicker.hidden)emojiGrid.firstElementChild.focus();});
   document.querySelector('[data-emoji-close]').addEventListener('click',()=>closePicker(true));
-  emojiPicker.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();closePicker(true);}});
-  document.addEventListener('click',event=>{if(!emojiPicker.hidden && !emojiPicker.contains(event.target) && !emojiToggle.contains(event.target))closePicker();});
+  document.addEventListener('keydown',event=>{if(event.key==='Escape' && !emojiPicker.hidden){event.preventDefault();event.stopPropagation();closePicker(true);}});
   for(const [emoji,label] of emojis){
     const button=document.createElement('button');button.type='button';button.textContent=emoji;button.setAttribute('aria-label',label);button.title=label;
     button.addEventListener('click',()=>{
       if(!allowed)return;
       const start=Math.min(cursorStart,input.value.length),end=Math.min(cursorEnd,input.value.length);
       if(input.value.length-(end-start)+emoji.length>input.maxLength){error.textContent='Your message is full. Remove a little text to add an emoji.';return;}
-      input.setRangeText(emoji,start,end,'end');input.dispatchEvent(new Event('input',{bubbles:true}));input.focus();closePicker();error.textContent='';
+      input.setRangeText(emoji,start,end,'end');input.dispatchEvent(new Event('input',{bubbles:true}));input.focus();error.textContent='';
     });emojiGrid.append(button);
   }
 
