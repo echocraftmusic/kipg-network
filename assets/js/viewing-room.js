@@ -1,11 +1,16 @@
 import {roomState,easternTime} from './room-state.js?v=20261002-room-timing';
 import {attachChat} from './room-chat.js?v=20261003-shared';
 import {loadSharedRoom} from './shared-room.js?v=20261003-shared';
-import {connectSharedChat} from './shared-chat.js?v=20261003-shared';
+import {connectSharedChat} from './shared-chat.js?v=20261003-room-return';
+import {rememberRoom} from './room-navigation.js?v=20261003-room-return';
 const $ = selector => document.querySelector(selector);
 const params = new URL(location.href).searchParams;
 const roomId = params.get('room') || 'theater-1';
 const rehearsalId = params.get('rehearsal');
+const returnRoom=rememberRoom(location.href,location.href);
+const signin=$('[data-chat-signin]');
+if(rehearsalId)signin.hidden=true;
+else if(returnRoom){const account=new URL('community.html',location.href);account.searchParams.set('mode','signin');account.searchParams.set('returnTo',returnRoom);signin.href=account.href;}
 const chat=attachChat(rehearsalId);
 const sharedChat=rehearsalId ? null : connectSharedChat(chat);
 const screen=$('.vr-screen');
@@ -108,7 +113,8 @@ function tick() {
   $('[data-catch-up]').hidden=!(ready && current.phase==='playing');
   if(rehearsalId){
     $('[data-chat-status]').textContent=current.chatWindow?'Local rehearsal':'Closed';
-    $('[data-chat-copy]').textContent='Test the message layout here. These messages are visible only in this browser.';
+    $('[data-chat-copy]').textContent='Test the message layout here. This local rehearsal does not use shared community chat.';
+    $('[data-chat-member]').textContent='Local rehearsal · no sign-in required';
   }
   if(current.phase==='idle')curtain('Projector 1 · Standing by','Your seat is waiting','Our next shared viewing will appear here when it is scheduled.');
   if(current.phase==='scheduled')curtain('Theater 1 · Scheduled',session.title,`The room opens ${easternTime(current.opensAt)}.`);

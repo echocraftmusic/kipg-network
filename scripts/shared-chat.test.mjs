@@ -23,7 +23,7 @@ test('messages are chronological, deduplicated, capped and hide removed content'
 test('shared adapter sends only session and body, handles sign-out, close and stale events',async()=>{
   const realFetch=globalThis.fetch,realInterval=globalThis.setInterval,realClear=globalThis.clearInterval;
   const elements=new Map();globalThis.document={querySelector:key=>{if(!elements.has(key))elements.set(key,{textContent:'',hidden:false});return elements.get(key);}};
-  globalThis.window={addEventListener(){}};let authUser=verified,authCallback,eventCallback,subscription,sent,serverRows=[],lastRows=[],allowed=false,sender;
+  const lifecycle=new Map();globalThis.window={addEventListener:(name,callback)=>lifecycle.set(name,callback)};let authUser=verified,authCallback,eventCallback,subscription,sent,serverRows=[],lastRows=[],allowed=false,sender;
   const fake={auth:{getSession:async()=>({data:{session:authUser?{user:authUser}:null}}),onAuthStateChange:callback=>{authCallback=callback;}},rpc:async()=>({data:profile}),removeChannel:async()=>{},channel:()=>({on(_type,_filter,callback){eventCallback=callback;return this;},subscribe(callback){subscription=callback;queueMicrotask(()=>callback('SUBSCRIBED'));return this;}}),from:()=>({insert:async row=>{sent=row;serverRows.push({id:'one',body:row.body,username:profile.username,created_at:new Date().toISOString(),hidden:false});return {error:null};},select:()=>({eq(){return this;},order(){return this;},limit:async()=>({data:serverRows})})})};
   globalThis.supabase={createClient:()=>fake};globalThis.fetch=async()=>({ok:true,json:async()=>({projectUrl:'https://'+'a'.repeat(20)+'.supabase.co',publishableKey:'sb_publishable_test'})});
   globalThis.setInterval=()=>0;globalThis.clearInterval=()=>{};
@@ -37,5 +37,7 @@ test('shared adapter sends only session and body, handles sign-out, close and st
     authUser=null;authCallback();await flush();assert.equal(allowed,false);
     const stale=eventCallback;adapter.update({chatWindow:false},{id:'show'});assert.equal(lastRows.length,0);
     stale({new:serverRows[0]});assert.equal(lastRows.length,0);await assert.rejects(()=>sender('closed'));
+    authUser=verified;adapter.update({chatWindow:true},{id:'show'});lifecycle.get('pagehide')();
+    lifecycle.get('pageshow')({persisted:true});await flush();assert.equal(allowed,true);assert.equal(lastRows.length,1);
   }finally{globalThis.fetch=realFetch;globalThis.setInterval=realInterval;globalThis.clearInterval=realClear;}
 });

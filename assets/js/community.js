@@ -1,3 +1,4 @@
+import {accountReturn} from './room-navigation.js?v=20261003-room-return';
 import {getCommunityClient,communityError} from './community-client.js?v=20261003-shared';
 const $=selector=>document.querySelector(selector);
 const form=$('[data-account-form]'),submit=$('[data-account-submit]'),result=$('[data-account-result]'),connection=$('[data-account-connection]');
@@ -62,6 +63,9 @@ $('[data-username-form]').addEventListener('submit',async event=>{
     if(member?.id!==expected)return;profile=data;showMember(member);$('[data-name-result]').textContent='Your username is saved. You’ll use it in community chat.';
   }catch(error){$('[data-name-result]').textContent=communityError(error);}finally{button.disabled=false;setBusy(false);}
 });
+const roomReturn=accountReturn(location.href);
+const roomButton=$('[data-return-room]');roomButton.href=roomReturn;
+roomButton.textContent=new URL(roomReturn).searchParams.has('rehearsal')?'Return to your rehearsal':'Go to the Viewing Room';
 setMode(mode);
 try{
   client=await getCommunityClient();connection.textContent='Community connected. Sign in through your email link.';

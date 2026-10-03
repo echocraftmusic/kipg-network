@@ -13,7 +13,9 @@ export function connectSharedChat(view){
   function paint(){
     const allowed=sharedCanPost(current,user,profile,connected);
     let hint=!current.chatWindow?'Chat opens 15 minutes before the show and closes five minutes afterward.':!client?'Connecting to community…':!user?'Sign in to join the conversation.':!user.email_confirmed_at?'Verify your email to chat.':!profile?'Preparing your community username…':profile.suspended?'Chat access is suspended.':Date.parse(profile.muted_until)>Date.now()?'Your chat access is temporarily muted.':!connected?'Reconnecting to shared chat…':`Chatting as ${profile.username}`;
+    if(!current.chatWindow && profile)hint=`Signed in as ${profile.username} · Chat opens with the next show.`;
     if(failure)hint=failure;
+    document.querySelector('[data-chat-member]').textContent=profile?`Signed in as ${profile.username}`:user?'Signed in · preparing your username':client?'Watching as a guest':'Checking community account…';
     status.textContent=!current.chatWindow?'Closed':connected?'Shared chat':'Connecting';
     copy.textContent=current.chatWindow?'Say hello to the community. Everyone here shares this conversation.':'The conversation opens with the next show. Anyone can watch; verified community members can chat.';
     view.setAccess(allowed,hint,allowed?'Say something to the community…':user?'Chat is unavailable right now':'Sign in to chat');
@@ -68,8 +70,11 @@ export function connectSharedChat(view){
     client=service;client.auth.onAuthStateChange(()=>{setTimeout(()=>refreshProfile(),0);});
     await refreshProfile();subscribe();paint();
   }).catch(()=>{failure='Community service could not connect. Reload to try again.';paint();});
-  const timer=setInterval(()=>{refreshProfile();if(current.chatWindow)refreshMessages(generation);},15000);
-  window.addEventListener('pagehide',()=>{clearInterval(timer);stop();});
+  let timer;
+  function startPolling(){if(timer==null)timer=setInterval(()=>{refreshProfile();if(current.chatWindow)refreshMessages(generation);},15000);}
+  startPolling();
+  window.addEventListener('pagehide',()=>{clearInterval(timer);timer=null;stop();});
+  window.addEventListener('pageshow',event=>{if(event.persisted){startPolling();refreshProfile().then(()=>{subscribe();paint();});}});
   return {update(state,next){
     const changed=next?.id!==session?.id||Boolean(state.chatWindow)!==Boolean(current.chatWindow);
     current=state;if(changed)stop();session=next;

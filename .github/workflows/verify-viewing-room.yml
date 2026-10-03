@@ -10,6 +10,8 @@ on:
       - 'assets/js/shared-*.js'
       - 'assets/js/community*.js'
       - 'scripts/shared-chat.test.mjs'
+      - 'scripts/room-navigation.test.mjs'
+      - 'assets/js/room-navigation.js'
       - 'assets/css/viewing-room.css'
       - 'pages/**'
       - 'data/viewing-rooms.json'
