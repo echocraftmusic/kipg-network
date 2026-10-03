@@ -1,102 +1,71 @@
-// Passwords go directly to Supabase Auth; they are never saved by this page.
+import {getCommunityClient,communityError} from './community-client.js?v=20261003-shared';
 const $=selector=>document.querySelector(selector);
 const form=$('[data-account-form]'),submit=$('[data-account-submit]'),result=$('[data-account-result]'),connection=$('[data-account-connection]');
-const recoveryRequested=new URL(location.href).searchParams.get('flow')==='recovery';
-let mode='signup',busy=false,client=null,recovering=false,member=null;
 const callback=new URL('community.html',location.href).href;
+const linkError=new URLSearchParams(location.hash.slice(1)).has('error')||new URL(location.href).searchParams.has('error');
+let mode=new URL(location.href).searchParams.get('mode')==='signin'?'signin':'signup',busy=false,client=null,member=null,profile=null,ticket=0;
 function setMode(next){
-  if(busy)return;
-  mode=next;result.textContent='';form.reset();form.elements.displayName.setCustomValidity('');
-  form.elements.password.type='password';const visibility=$('[data-show-password]');visibility.textContent='Show';visibility.setAttribute('aria-label','Show password');visibility.setAttribute('aria-pressed','false');
+  if(busy)return;mode=next;form.reset();result.textContent='';
   for(const button of document.querySelectorAll('[data-account-mode]'))button.setAttribute('aria-pressed',String(button.dataset.accountMode===mode));
-  for(const field of document.querySelectorAll('[data-signup-field]'))field.hidden=mode!=='signup';
-  form.elements.displayName.required=mode==='signup';form.elements.respect.required=mode==='signup';
-  $('[data-email-field]').hidden=mode==='update';form.elements.email.required=mode!=='update';
-  $('[data-password-field]').hidden=mode==='reset';form.elements.password.required=mode!=='reset';
-  form.elements.password.minLength=['signup','update'].includes(mode)?12:1;form.elements.password.autocomplete=mode==='signin'?'current-password':'new-password';
-  $('[data-password-help]').textContent=mode==='signin'?'Enter the password for your KIPG account.':'Use at least 12 characters.';
-  const titles={signup:'Join the KIPG family',signin:'Welcome back',reset:'Reset your password',update:'Choose a new password'};
-  const copies={signup:'A few details, then verify your email to get started.',signin:'Sign in to your community account.',reset:'We’ll email you a link to choose a new password.',update:'Save a new password for your community account.'};
-  $('[data-account-title]').textContent=titles[mode];$('[data-account-copy]').textContent=copies[mode];
-  submit.textContent={signup:'Create free account',signin:'Sign in',reset:'Send reset link',update:'Save new password'}[mode];
-  $('[data-forgot-password]').hidden=mode!=='signin';$('[data-back-signin]').hidden=mode!=='reset';
-  showMember(member);
+  $('[data-signup-field]').hidden=mode!=='signup';form.elements.respect.required=mode==='signup';
+  $('[data-account-title]').textContent=mode==='signup'?'Join the KIPG family':'Welcome back';
+  $('[data-account-copy]').textContent=mode==='signup'?'Start with your email. We’ll assign your community username when you verify it.':'We’ll email you a secure sign-in link. No password needed.';
+  submit.textContent=mode==='signup'?'Send my join link':'Send sign-in link';
 }
-for(const button of document.querySelectorAll('[data-account-mode]'))button.addEventListener('click',()=>setMode(button.dataset.accountMode));
-$('[data-forgot-password]').addEventListener('click',()=>setMode('reset'));
-$('[data-back-signin]').addEventListener('click',()=>setMode('signin'));
-$('[data-show-password]').addEventListener('click',event=>{
-  const shown=form.elements.password.type==='password';form.elements.password.type=shown?'text':'password';
-  event.currentTarget.textContent=shown?'Hide':'Show';event.currentTarget.setAttribute('aria-label',shown?'Hide password':'Show password');event.currentTarget.setAttribute('aria-pressed',String(shown));
-});
+function setBusy(active){busy=active;submit.disabled=active||!client;for(const button of document.querySelectorAll('[data-account-mode], [data-sign-out]'))button.disabled=active;form.setAttribute('aria-busy',String(active));}
 function showMember(user){
-  member=user||null;const show=Boolean(member)&&!recovering;
-  form.hidden=show;$('.kc-switch').hidden=show||recovering;$('[data-member-panel]').hidden=!show;
+  member=user || null;const show=Boolean(member);
+  form.hidden=show;$('.kc-switch').hidden=show;$('[data-member-panel]').hidden=!show;
   if(show){
     $('[data-account-title]').textContent='Your community account';$('[data-account-copy]').textContent='You’re signed in to KIPG Network.';
-    $('[data-member-greeting]').textContent=`Welcome, ${member.user_metadata?.display_name || 'friend'}`;
-    $('[data-member-copy]').textContent=member.email_confirmed_at?'Your email is verified. Shared chat is still being connected.':'Please verify your email before participating in community chat.';
-  }
+    $('[data-member-greeting]').textContent=profile?`Welcome, ${profile.username}`:'Welcome to KIPG';
+    $('[data-member-copy]').textContent=!member.email_confirmed_at?'Verify your email before joining chat.':profile?`Your community username is ${profile.username}. Keep it or choose a custom one below.`:'Preparing your community username…';
+    $('[data-customize-name]').disabled=!profile||profile.suspended;
+  }else{profile=null;$('[data-username-form]').hidden=true;setMode(mode);}
 }
-function setBusy(active){busy=active;submit.disabled=active||!client;for(const button of document.querySelectorAll('[data-account-mode], [data-forgot-password], [data-back-signin], [data-sign-out]'))button.disabled=active;form.setAttribute('aria-busy',String(active));}
-function errorCopy(error){
-  if(error?.code==='email_address_not_authorized')return 'Email delivery is still being set up. Please try again once community registration opens.';
-  if(error?.code==='over_email_send_rate_limit')return 'Please wait a little before requesting another email.';
-  return error?.message || 'We could not complete that request. Please try again.';
-}
-form.addEventListener('submit',async event=>{
-  event.preventDefault();if(!client||busy)return;
-  if(mode==='signup')form.elements.displayName.setCustomValidity(form.elements.displayName.value.trim().length<2?'Choose a display name with at least two characters.':'');
-  if(!form.reportValidity())return;
-  setBusy(true);result.textContent='';const action=mode;
+async function syncMember(){
+  const current=++ticket;
   try{
-    const email=form.elements.email.value.trim().toLowerCase(),password=form.elements.password.value;
-    if(action==='signup'){
-      const {data,error}=await client.auth.signUp({email,password,options:{data:{display_name:form.elements.displayName.value.trim(),community_guidelines_accepted_at:new Date().toISOString()},emailRedirectTo:callback}});
-      if(error)throw error;
-      form.reset();form.elements.password.type='password';
-      if(data.session)showMember(data.user);
-      else result.textContent='Check your email for the verification link. If you already have an account, use Sign in.';
-    }else if(action==='signin'){
-      const {data,error}=await client.auth.signInWithPassword({email,password});if(error)throw error;form.elements.password.value='';showMember(data.user);
-    }else if(action==='reset'){
-      const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:callback+'?flow=recovery'});if(error)throw error;
-      form.reset();result.textContent='If that email has an account, you’ll receive a password-reset link. Check your inbox and spam folder.';
-    }else if(action==='update'){
-      const {error}=await client.auth.updateUser({password});if(error)throw error;form.elements.password.value='';
-      // End the recovery session before showing a normal sign-in form.
-      const signedOut=await client.auth.signOut();if(signedOut.error)throw signedOut.error;
-      recovering=false;member=null;setBusy(false);setMode('signin');history.replaceState(null,'',callback);result.textContent='Your password is updated. Sign in with your new password.';
+    const {data,error}=await client.auth.getSession();if(error)throw error;if(current!==ticket)return;
+    profile=null;showMember(data.session?.user);
+    if(member?.email_confirmed_at){
+      const response=await client.rpc('kipg_ensure_profile');if(response.error)throw response.error;
+      if(current!==ticket)return;profile=response.data;showMember(member);
     }
-  }catch(error){form.elements.password.value='';result.textContent=errorCopy(error);}
-  finally{setBusy(false);}
+  }catch(error){if(current===ticket){$('[data-member-copy]').textContent='Your username could not connect. Reload to try again.';result.textContent=communityError(error);}}
+}
+for(const button of document.querySelectorAll('[data-account-mode]'))button.addEventListener('click',()=>setMode(button.dataset.accountMode));
+form.addEventListener('submit',async event=>{
+  event.preventDefault();if(!client||busy||!form.reportValidity())return;setBusy(true);result.textContent='';
+  try{
+    const options={emailRedirectTo:callback,shouldCreateUser:mode==='signup'};
+    if(mode==='signup')options.data={community_guidelines_accepted_at:new Date().toISOString()};
+    const {error}=await client.auth.signInWithOtp({email:form.elements.email.value.trim().toLowerCase(),options});if(error)throw error;
+    form.reset();result.textContent=mode==='signup'?'Check your inbox and spam folder for your KIPG join link. If you already have an account, the link will sign you in.':'If you have a KIPG account, check your inbox and spam folder for your sign-in link.';
+  }catch(error){result.textContent=communityError(error);}finally{setBusy(false);}
 });
-form.elements.displayName.addEventListener('input',()=>form.elements.displayName.setCustomValidity(''));
 $('[data-sign-out]').addEventListener('click',async()=>{
   if(!client||busy)return;setBusy(true);
-  try{const {error}=await client.auth.signOut();if(error)throw error;member=null;recovering=false;setBusy(false);setMode('signin');}
-  catch(error){result.textContent=errorCopy(error);}finally{setBusy(false);}
+  try{const {error}=await client.auth.signOut();if(error)throw error;ticket++;profile=null;member=null;mode='signin';setBusy(false);showMember(null);result.textContent='You’re signed out.';}
+  catch(error){result.textContent=communityError(error);}finally{setBusy(false);}
 });
-async function connect(){
+$('[data-customize-name]').addEventListener('click',()=>{
+  const panel=$('[data-username-form]');panel.hidden=!panel.hidden;
+  $('[data-customize-name]').setAttribute('aria-expanded',String(!panel.hidden));
+  if(!panel.hidden)panel.elements.username.focus();
+});
+$('[data-username-form]').addEventListener('submit',async event=>{
+  event.preventDefault();const nameForm=event.currentTarget;if(!client||busy||!profile||!nameForm.reportValidity())return;
+  const expected=member?.id;const button=$('[data-save-name]');button.disabled=true;setBusy(true);$('[data-name-result]').textContent='';
   try{
-    if(!window.supabase?.createClient)throw new Error('The account service could not load. Reload the page to try again.');
-    const response=await fetch(new URL('../../data/community-auth.json',import.meta.url),{cache:'no-store'});if(!response.ok)throw new Error('Account connection unavailable.');
-    const config=await response.json();if(!/^https:\/\/[a-z0-9]{20}\.supabase\.co$/.test(config.projectUrl)||!/^sb_publishable_[a-zA-Z0-9_-]+$/.test(config.publishableKey))throw new Error('Account connection is not configured.');
-    const settingsResponse=await fetch(config.projectUrl+'/auth/v1/settings',{headers:{apikey:config.publishableKey}});if(!settingsResponse.ok)throw new Error('Could not connect to the account service.');
-    const settings=await settingsResponse.json();if(settings.disable_signup||!settings.external?.email||settings.mailer_autoconfirm)throw new Error('Community registration is not open yet.');
-    client=window.supabase.createClient(config.projectUrl,config.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'kipg-community-auth'}});
-    connection.textContent='Account connection ready. Email verification and delivery are being tested before launch.';
-    client.auth.onAuthStateChange((event,session)=>{
-      if(event==='PASSWORD_RECOVERY'){recovering=true;showMember(session?.user);setMode('update');}
-      else if(event==='SIGNED_OUT')showMember(null);
-      else showMember(session?.user);
-    });
-    const {data,error}=await client.auth.getSession();if(error)throw error;
-    recovering=recoveryRequested&&Boolean(data.session);showMember(data.session?.user);
-    if(recovering)setMode('update');
-    else if(recoveryRequested){setMode('reset');result.textContent='This reset link is invalid or expired. Request a new link.';}
-    else if(new URL(location.href).searchParams.has('error')||new URLSearchParams(location.hash.slice(1)).has('error'))result.textContent='That verification link is invalid or expired. Try signing in or request a new reset link.';
-    setBusy(false);
-  }catch(error){client=null;submit.disabled=true;connection.textContent=errorCopy(error);}
-}
-await connect();
+    const {data,error}=await client.rpc('kipg_set_username',{candidate:nameForm.elements.username.value.trim()});if(error)throw error;
+    if(member?.id!==expected)return;profile=data;showMember(member);$('[data-name-result]').textContent='Your username is saved. You’ll use it in community chat.';
+  }catch(error){$('[data-name-result]').textContent=communityError(error);}finally{button.disabled=false;setBusy(false);}
+});
+setMode(mode);
+try{
+  client=await getCommunityClient();connection.textContent='Community connected. Sign in through your email link.';
+  client.auth.onAuthStateChange(()=>{setTimeout(()=>syncMember(),0);});
+  await syncMember();setBusy(false);
+  if(linkError)result.textContent='That sign-in link is invalid or expired. Request a new one.';
+}catch(error){client=null;connection.textContent=communityError(error);setBusy(false);}

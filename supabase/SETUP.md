@@ -27,3 +27,11 @@ Call `rpc('kipg_ensure_profile')` after verification/sign-in. Use the returned u
 Fetch messages after subscribing to avoid missing messages during connection. Re-fetch after reconnect; preserve scrollback. At close, clear displayed history and unsubscribe. Cancelled/ended session changes require listening to `kipg_sessions` and re-fetching on reconnect. Hidden-message removal requires a trusted moderation notification workflow; Realtime does not reliably emit updates when RLS makes a row unreadable. Do not claim delete/mute controls are implemented yet.
 
 The standalone projector rehearsal and current browser-only chat remain unchanged until the shared adapter is installed. Magic links, host/moderator roles and UI, custom SMTP, newsletter delivery, privacy/retention policy, and end-to-end multi-account tests are separate remaining work.
+
+## Connected website
+
+The website adapter is now installed. Do not rerun the migration after a successful installation. On the Community page, sign in by email link and confirm that your assigned username appears. Choose a custom username if desired. Existing display-name metadata is not automatically migrated because it may violate the new rules.
+
+The public theater reads only database shows; the Projector drawer explicitly remains a local rehearsal. A trusted operator must first create a test show in SQL Editor (with the selected YouTube ID and accurate episode duration). No host account is implicitly granted rights by signup or metadata. Public chat remains closed while no show is scheduled.
+
+Validation: `npm run verify`, `npm run test:room`, `npm run test:chat`; 33 PostgreSQL assertions in `supabase/tests/chat-security.mjs` passed with the RLS-enabled private table. Anonymous production reads were checked; real-member/email and two-account Realtime verification still require user participation.

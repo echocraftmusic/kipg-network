@@ -25,6 +25,7 @@ insert into kipg_private.blocked_username_terms(term) values
  ('fuck'),('shit'),('bitch'),('cunt'),('asshole'),('bastard'),('motherfucker'),
  ('nigger'),('nigga'),('faggot'),('porn'),('nazi'),('whore'),('slut'),('dick'),('cock'),
  ('admin'),('moderator'),('kipg'),('staff'),('support');
+alter table kipg_private.blocked_username_terms enable row level security;
 revoke all on kipg_private.blocked_username_terms from public, anon, authenticated;
 
 create function kipg_private.username_allowed(candidate text) returns boolean

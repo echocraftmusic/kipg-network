@@ -1,4 +1,4 @@
-// Browser-only chat rehearsal. No shared messaging or moderation is claimed here.
+// Shared chat uses server-confirmed messages; rehearsal remains local to this browser.
 export function messageText(value) {return typeof value==='string' ? value.trim().slice(0,500) : '';}
 export function chatCanPost(rehearsal, state) {return Boolean(rehearsal && state?.chatWindow);}
 export function attachChat(rehearsalId) {
@@ -15,7 +15,7 @@ export function attachChat(rehearsalId) {
   const emojiPicker=document.querySelector('[data-emoji-picker]');
   const emojiGrid=document.querySelector('[data-emoji-grid]');
   const emojis=[['😀','Grinning face'],['😃','Smiling face'],['😊','Happy smile'],['😁','Beaming smile'],['😂','Tears of joy'],['🤣','Laughing'],['🥹','Happy tears'],['😍','Heart eyes'],['🥰','Feeling loved'],['😎','Cool'],['🤔','Thinking'],['😮','Surprised'],['😢','Sad'],['😭','Crying'],['🙌','Raised hands'],['👏','Clapping'],['👍','Thumbs up'],['👎','Thumbs down'],['🙏','Prayer'],['🤝','Handshake'],['👋','Wave'],['💪','Strength'],['❤️','Red heart'],['💛','Gold heart'],['💙','Blue heart'],['💜','Purple heart'],['🤍','White heart'],['💔','Broken heart'],['🔥','Fire'],['✨','Sparkles'],['⭐','Star'],['🎉','Celebration'],['💯','One hundred'],['✅','Check mark'],['🕊️','Dove'],['✝️','Cross']];
-  let allowed=false,messages=[],cursorStart=0,cursorEnd=0;
+  let allowed=false,messages=[],cursorStart=0,cursorEnd=0,sender=null,sending=false;
   function rememberCursor(){cursorStart=input.selectionStart;cursorEnd=input.selectionEnd;}
   for(const event of ['select','keyup','click','input'])input.addEventListener(event,rememberCursor);
   function closePicker(focus=false){emojiPicker.hidden=true;emojiToggle.setAttribute('aria-expanded','false');if(focus)emojiToggle.focus();}
@@ -38,7 +38,7 @@ export function attachChat(rehearsalId) {
   function bottom(){scroller.scrollTop=scroller.scrollHeight;newer.hidden=true;}
   function renderMessage(message){
     const row=document.createElement('article');row.className='vr-chat-message';
-    const header=document.createElement('header');const name=document.createElement('strong');name.textContent='You · rehearsal';
+    const header=document.createElement('header');const name=document.createElement('strong');name.textContent=message.username || 'You · rehearsal';
     const time=document.createElement('time');time.dateTime=message.at;time.textContent=new Date(message.at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
     const text=document.createElement('p');text.textContent=message.text;header.append(name,time);row.append(header,text);log.append(row);
   }
@@ -47,10 +47,17 @@ export function attachChat(rehearsalId) {
   requestAnimationFrame(bottom);
   input.addEventListener('input',()=>{document.querySelector('[data-chat-count]').textContent=`${input.value.length}/500`;});
   input.addEventListener('keydown',event=>{if(event.key==='Enter' && !event.shiftKey && !event.isComposing){event.preventDefault();form.requestSubmit();}});
-  form.addEventListener('submit',event=>{
+  form.addEventListener('submit',async event=>{
     event.preventDefault();error.textContent='';
-    if(!allowed){error.textContent='This session’s chat window is closed.';return;}
+    if(sending)return;
+    if(!allowed){error.textContent='Sign in with a verified account while this show’s chat is open.';return;}
     const text=messageText(input.value);if(!text)return;
+    if(!rehearsalId){
+      if(!sender)return;const draft=input.value;sending=true;send.disabled=true;
+      try{await sender(text);if(input.value===draft){input.value='';cursorStart=cursorEnd=0;input.dispatchEvent(new Event('input'));}input.focus();}
+      catch(failure){error.textContent=failure.message || 'Your message could not be sent. Try again.';}
+      finally{sending=false;send.disabled=!allowed;}return;
+    }
     const message={text,at:new Date().toISOString()};const atBottom=scroller.scrollHeight-scroller.scrollTop-scroller.clientHeight<48;
     messages.push(message);if(messages.length>100){messages.shift();log.firstElementChild?.remove();}
     renderMessage(message);empty.hidden=true;
@@ -61,7 +68,22 @@ export function attachChat(rehearsalId) {
   });
   scroller.addEventListener('scroll',()=>{if(scroller.scrollHeight-scroller.scrollTop-scroller.clientHeight<48)newer.hidden=true;});
   newer.addEventListener('click',bottom);
-  return {update(state){
+  function access(canPost,copy,placeholder){
+    allowed=canPost;input.disabled=!allowed;send.disabled=!allowed||sending;emojiToggle.disabled=!allowed;if(!allowed)closePicker();hint.textContent=copy;input.placeholder=placeholder;
+  }
+  return {
+    setSender(callback){sender=callback;},
+    setError(copy){error.textContent=copy;},
+    setAccess(canPost,copy,placeholder){access(canPost,copy,placeholder);},
+    replace(rows){
+      const atBottom=scroller.scrollHeight-scroller.scrollTop-scroller.clientHeight<48;const scroll=scroller.scrollTop;
+      if(JSON.stringify(rows)===JSON.stringify(messages))return;
+      const changed=rows.some(row=>!messages.some(old=>old.id===row.id));
+      messages=rows;log.replaceChildren();for(const message of messages)renderMessage(message);empty.hidden=messages.length>0;
+      if(atBottom)bottom();else{scroller.scrollTop=scroll;if(changed)newer.hidden=false;}
+    },
+    update(state){
+    if(!rehearsalId)return;
     allowed=chatCanPost(rehearsalId,state);input.disabled=!allowed;send.disabled=!allowed;emojiToggle.disabled=!allowed;if(!allowed)closePicker();
     input.placeholder=allowed?'Type a rehearsal message…':rehearsalId?'This session’s chat is closed':'Chat is not connected yet';
     hint.textContent=rehearsalId?'Local rehearsal · messages stay in this browser':'Chat opens with the room and closes five minutes after the episode.';

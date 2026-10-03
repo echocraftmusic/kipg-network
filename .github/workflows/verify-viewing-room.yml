@@ -7,6 +7,9 @@ on:
       - 'assets/js/viewing-room.js'
       - 'assets/js/projector.js'
       - 'assets/js/room-chat.js'
+      - 'assets/js/shared-*.js'
+      - 'assets/js/community*.js'
+      - 'scripts/shared-chat.test.mjs'
       - 'assets/css/viewing-room.css'
       - 'pages/**'
       - 'data/viewing-rooms.json'
@@ -25,5 +28,6 @@ jobs:
           node-version: '20'
       - run: npm run verify
       - run: npm run test:room
+      - run: npm run test:chat
       - run: npm run test:youtube
       - run: node --check assets/js/viewing-room.js && node --check assets/js/projector.js && node --check assets/js/room-chat.js

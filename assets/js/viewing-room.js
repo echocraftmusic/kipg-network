@@ -1,10 +1,13 @@
 import {roomState,easternTime} from './room-state.js?v=20261002-room-timing';
-import {attachChat} from './room-chat.js?v=20261002-room-timing';
+import {attachChat} from './room-chat.js?v=20261003-shared';
+import {loadSharedRoom} from './shared-room.js?v=20261003-shared';
+import {connectSharedChat} from './shared-chat.js?v=20261003-shared';
 const $ = selector => document.querySelector(selector);
 const params = new URL(location.href).searchParams;
 const roomId = params.get('room') || 'theater-1';
 const rehearsalId = params.get('rehearsal');
 const chat=attachChat(rehearsalId);
+const sharedChat=rehearsalId ? null : connectSharedChat(chat);
 const screen=$('.vr-screen');
 const layout=$('.vr-layout');
 const chatPanel=$('.vr-chat');
@@ -44,7 +47,7 @@ document.addEventListener('fullscreenchange',()=>{
   if(!full)fullscreenButton.focus();
 });
 let room, session, player, ready=false, joined=false, activeId, ended=false, runtimeDuration, apiPromise, lastPhase, failures=0;
-function state() { return roomState(runtimeDuration ? {...session,durationSeconds:runtimeDuration} : session); }
+function state() { return roomState(rehearsalId && runtimeDuration ? {...session,durationSeconds:runtimeDuration} : session); }
 function api() {
   if (window.YT?.Player) return Promise.resolve();
   if (!apiPromise) apiPromise=new Promise((resolve,reject)=>{
@@ -91,7 +94,7 @@ async function startPlayer() {
 function tick() {
   if(!room)return;
   const current=state();
-  chat.update(current);
+  chat.update(current);sharedChat?.update(current,session);
   const phaseChanged=current.phase!==lastPhase;
   const labels={idle:'No session scheduled',scheduled:'Scheduled',lobby:'Room open',playing:'Now showing',aftershow:'Goodbye chat · 5 minutes',ended:'Session ended'};
   if(current.phase!==lastPhase){$('[data-room-status]').textContent=labels[current.phase];lastPhase=current.phase;}
@@ -103,8 +106,10 @@ function tick() {
   $('[data-countdown]').hidden=current.countdownSeconds==null;
   $('[data-countdown]').textContent=current.countdownSeconds==null?'':`Starting in ${Math.floor(current.countdownSeconds/60)}:${String(current.countdownSeconds%60).padStart(2,'0')}`;
   $('[data-catch-up]').hidden=!(ready && current.phase==='playing');
-  $('[data-chat-status]').textContent=current.chatWindow?(rehearsalId?'Local rehearsal':'Not connected'):'Closed';
-  $('[data-chat-copy]').textContent=rehearsalId ? 'Test the message layout here. These messages are visible only in this browser.' : current.chatWindow ? 'This session’s chat window is open, but posting is not available yet. We’re preparing the KIPG community conversation.' : 'Chat is not available yet. It will open with the room and remain open for five minutes after the shared episode ends.';
+  if(rehearsalId){
+    $('[data-chat-status]').textContent=current.chatWindow?'Local rehearsal':'Closed';
+    $('[data-chat-copy]').textContent='Test the message layout here. These messages are visible only in this browser.';
+  }
   if(current.phase==='idle')curtain('Projector 1 · Standing by','Your seat is waiting','Our next shared viewing will appear here when it is scheduled.');
   if(current.phase==='scheduled')curtain('Theater 1 · Scheduled',session.title,`The room opens ${easternTime(current.opensAt)}.`);
   if(current.phase==='lobby')curtain('Theater 1 · Starting soon',session.title,`The episode begins ${easternTime(current.startsAt)}. ${joined?'Your seat is ready. Playback will begin when the show starts.':'Take your seat and say hello in chat while we get ready.'}`);
@@ -122,7 +127,7 @@ function tick() {
 }
 function setRoom(next) {
   const nextSession=next.session || null; roomState(nextSession);
-  const key=JSON.stringify(nextSession);
+  const key=JSON.stringify(nextSession && [nextSession.id,nextSession.videoId,nextSession.startsAt]);
   if(key!==activeId){clearPlayer();joined=false;activeId=key;lastPhase=null;}
   room=next;session=nextSession;
   $('[data-room-name]').textContent=next.name;$('[data-projector-name]').textContent=next.projectorName;
@@ -136,10 +141,10 @@ async function refresh() {
   try {
     let data;
     if(rehearsalId){data=JSON.parse(localStorage.getItem(`kipg-rehearsal-${rehearsalId}`));$('[data-rehearsal]').hidden=false;}
-    else {const response=await fetch(new URL('../../data/viewing-rooms.json',import.meta.url),{cache:'no-store'});if(!response.ok)throw new Error('Room schedule unavailable.');data=await response.json();}
+    else {data={rooms:[await loadSharedRoom(roomId)]};}
     const next=data?.rooms?.find(item=>item.id===roomId);if(!next)throw new Error('This room could not be found. Return to Theater 1 or create a new rehearsal.');
     setRoom(next);failures=0;
-  } catch(error){failures++;$('[data-player-notice]').textContent=error.message;if(!room || failures>=3){room=null;chat.update({chatWindow:false});clearPlayer();$('[data-room-status]').textContent='Room unavailable';$('[data-join]').disabled=true;curtain('Please try again','The room could not load','Reload this page to reconnect to the session.');}}
+  } catch(error){failures++;$('[data-player-notice]').textContent=error.message;if(!room || failures>=3){room=null;chat.update({chatWindow:false});sharedChat?.update({chatWindow:false},null);clearPlayer();$('[data-room-status]').textContent='Room unavailable';$('[data-join]').disabled=true;curtain('Please try again','The room could not load','Reload this page to reconnect to the session.');}}
 }
 $('[data-join]').addEventListener('click',()=>{joined=true;tick();});
 $('[data-catch-up]').addEventListener('click',()=>{if(ready && state().phase==='playing'){player.seekTo(state().position,true);player.playVideo();}});
