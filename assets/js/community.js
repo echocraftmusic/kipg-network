@@ -16,18 +16,20 @@ function setMode(next){
 }
 function setBusy(active){busy=active;submit.disabled=active||!client;for(const button of document.querySelectorAll('[data-account-mode], [data-sign-out]'))button.disabled=active;form.setAttribute('aria-busy',String(active));$('[data-save-profile]').disabled=active||!details;}
 function showMember(user){
-  member=user || null;const show=Boolean(member);
+  const previousId=member?.id;member=user || null;const show=Boolean(member);
+  if(previousId!==member?.id){$('[data-profile-form]').hidden=true;$('[data-edit-profile]').setAttribute('aria-expanded','false');$('[data-edit-profile]').textContent='Edit profile';$('[data-profile-status]').textContent='';}
   form.hidden=show;$('.kc-switch').hidden=show;$('[data-member-panel]').hidden=!show;
   if(show){
     $('[data-account-title]').textContent='Your community account';$('[data-account-copy]').textContent='You’re signed in to KIPG Network.';
     $('[data-member-greeting]').textContent=profile?`Welcome, ${profile.username}`:'Welcome to KIPG';
-    $('[data-member-copy]').textContent=!member.email_confirmed_at?'Verify your email before joining chat.':profile?`Your community username is ${profile.username}. Keep it or choose a custom one below.`:'Preparing your community username…';
+    $('[data-member-copy]').textContent=!member.email_confirmed_at?'Verify your email before joining chat.':profile?'You’re ready to join the conversation. Enter the Viewing Room below.':'Preparing your community username…';
     $('[data-customize-name]').disabled=!profile||profile.suspended;
+    connection.textContent='You’re signed in. Welcome back.';
     const fields=$('[data-profile-form]').elements;
     fields.email.value=member.email||'';
     if(!details){fields.first_name.value=member.user_metadata?.first_name||'';fields.last_name.value=member.user_metadata?.last_name||'';fields.newsletter.checked=member.user_metadata?.newsletter_opt_in===true;}
     $('[data-save-profile]').disabled=!details||busy;
-  }else{profile=null;details=null;$('[data-profile-result]').textContent='';$('[data-username-form]').hidden=true;setMode(mode);}
+  }else{connection.textContent='Sign in through your email link.';profile=null;details=null;$('[data-profile-result]').textContent='';$('[data-username-form]').hidden=true;setMode(mode);}
 }
 async function syncMember(){
   const current=++ticket;
@@ -72,9 +74,15 @@ $('[data-username-form]').addEventListener('submit',async event=>{
   }catch(error){$('[data-name-result]').textContent=communityError(error);}finally{button.disabled=false;setBusy(false);}
 });
 
+$('[data-edit-profile]').addEventListener('click',()=>{
+  const panel=$('[data-profile-form]');panel.hidden=!panel.hidden;
+  $('[data-edit-profile]').setAttribute('aria-expanded',String(!panel.hidden));
+  $('[data-edit-profile]').textContent=panel.hidden?'Edit profile':'Close profile';
+  if(!panel.hidden)panel.elements.first_name.focus();
+});
 function showDetails(){
   const fields=$('[data-profile-form]').elements;
-  fields.first_name.value=details.first_name;fields.last_name.value=details.last_name;
+  fields.first_name.value=details.first_name||'';fields.last_name.value=details.last_name||'';
   fields.email.value=details.email;fields.newsletter.checked=details.newsletter_opt_in;
   $('[data-profile-copy]').textContent=details.first_name&&details.last_name?'Your name and email stay private. You can update your details and newsletter preference here.':'Add your first and last name to complete your community profile. Only your username appears in chat.';
   $('[data-save-profile]').disabled=busy;
@@ -82,8 +90,8 @@ function showDetails(){
 async function loadDetails(current){
   const {data,error}=await client.rpc('kipg_get_member_details');
   if(current!==ticket)return;
-  if(error){$('[data-profile-result]').textContent='Profile saving is temporarily unavailable. Please try again soon.';return;}
-  details=data;showDetails();
+  if(error){$('[data-profile-status]').textContent='Your saved profile could not load. Please reload before editing your details.';return;}
+  details=Array.isArray(data)?data[0]:data;if(!details)throw new Error('Your saved profile could not load.');showDetails();
 }
 $('[data-profile-form]').addEventListener('submit',async event=>{
   event.preventDefault();const fields=event.currentTarget.elements;
@@ -91,8 +99,9 @@ $('[data-profile-form]').addEventListener('submit',async event=>{
   const current=ticket;setBusy(true);$('[data-save-profile]').disabled=true;$('[data-profile-result]').textContent='';
   try{
     const {data,error}=await client.rpc('kipg_save_member_details',{given_name:fields.first_name.value.trim(),family_name:fields.last_name.value.trim(),subscribe_newsletter:fields.newsletter.checked});
-    if(error)throw error;if(current!==ticket)return;details=data;showDetails();
-    $('[data-profile-result]').textContent='Your member profile and newsletter preference are saved.';
+    if(error)throw error;if(current!==ticket)return;details=Array.isArray(data)?data[0]:data;if(!details)throw new Error('Your saved profile could not load.');showDetails();
+    $('[data-profile-form]').hidden=true;$('[data-edit-profile]').setAttribute('aria-expanded','false');$('[data-edit-profile]').textContent='Edit profile';
+    $('[data-profile-status]').textContent='Your member profile and newsletter preference are saved.';
   }catch(error){if(current===ticket)$('[data-profile-result]').textContent=communityError(error);}
   finally{setBusy(false);$('[data-save-profile]').disabled=!details;}
 });
