@@ -5,6 +5,17 @@ const form=$('[data-account-form]'),submit=$('[data-account-submit]'),result=$('
 const callback=new URL('community.html',location.href).href;
 const linkError=new URLSearchParams(location.hash.slice(1)).has('error')||new URL(location.href).searchParams.has('error');
 let mode=new URL(location.href).searchParams.get('mode')==='signin'?'signin':'signup',busy=false,client=null,member=null,profile=null,details=null,ticket=0;
+const welcomeRequests=new Set();
+function sendWelcome(user,current){
+  if(!user?.email_confirmed_at||welcomeRequests.has(user.id))return;
+  welcomeRequests.add(user.id);
+  // Run outside Auth callbacks and never delay entering the Viewing Room.
+  void client.functions.invoke('clever-processor',{body:{}}).then(({error})=>{
+    if(error&&current===ticket&&member?.id===user.id)$('[data-profile-status]').textContent='Your account is ready. We couldn’t complete your welcome email delivery yet.';
+  }).catch(()=>{
+    if(current===ticket&&member?.id===user.id)$('[data-profile-status]').textContent='Your account is ready. We couldn’t complete your welcome email delivery yet.';
+  });
+}
 function setMode(next){
   if(busy)return;mode=next;form.reset();result.textContent='';
   for(const button of document.querySelectorAll('[data-account-mode]'))button.setAttribute('aria-pressed',String(button.dataset.accountMode===mode));
@@ -40,6 +51,7 @@ async function syncMember(){
       const response=await client.rpc('kipg_ensure_profile');if(response.error)throw response.error;
       if(current!==ticket)return;profile=response.data;showMember(member);
       await loadDetails(current);
+      if(current===ticket)sendWelcome(member,current);
     }
   }catch(error){if(current===ticket){$('[data-member-copy]').textContent='Your username could not connect. Reload to try again.';result.textContent=communityError(error);}}
 }
