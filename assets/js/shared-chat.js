@@ -1,4 +1,5 @@
 import {getCommunityClient,communityError} from './community-client.js?v=20261003-shared';
+import {attachModeration} from './moderation.js?v=20261005-staff';
 export function sharedCanPost(state,user,profile,connected,now=Date.now()){
   return Boolean(state?.chatWindow && user?.email_confirmed_at && profile && !profile.suspended && !(Date.parse(profile.muted_until)>now) && connected);
 }
@@ -10,6 +11,7 @@ export function messageRows(rows){
 export function connectSharedChat(view){
   const status=document.querySelector('[data-chat-status]'),copy=document.querySelector('[data-chat-copy]');
   let client=null,user=null,profile=null,current={},session=null,channel=null,generation=0,authGeneration=0,connected=false,rows=[],refreshing=false,arrivals=[],failure='';
+  const moderation=document.querySelector('.vr-program')?attachModeration(view,()=>refreshMessages(generation)):null;
   function paint(){
     const allowed=sharedCanPost(current,user,profile,connected);
     let hint=!current.chatWindow?'Chat opens 15 minutes before the show and closes five minutes afterward.':!client?'Connecting to community…':!user?'Sign in to join the conversation.':!user.email_confirmed_at?'Verify your email to chat.':!profile?'Preparing your community username…':profile.suspended?'Chat access is suspended.':Date.parse(profile.muted_until)>Date.now()?'Your chat access is temporarily muted.':!connected?'Reconnecting to shared chat…':`Chatting as ${profile.username}`;
@@ -23,14 +25,16 @@ export function connectSharedChat(view){
   }
   async function refreshProfile(){
     if(!client)return;
-    const ticket=++authGeneration;profile=null;paint();
+    const ticket=++authGeneration;const previousUser=user?.id;profile=null;paint();
     try{
       const {data,error}=await client.auth.getSession();if(error)throw error;
       if(ticket!==authGeneration)return;user=data.session?.user || null;
+      if(previousUser!==user?.id){stop();moderation?.setAccess({});}
       if(user?.email_confirmed_at){const response=await client.rpc('kipg_ensure_profile');if(response.error)throw response.error;if(ticket!==authGeneration)return;profile=response.data;}
+      if(user?.email_confirmed_at){const rights=await client.rpc('kipg_capabilities');if(ticket!==authGeneration)return;moderation?.setAccess(rights.error?{}:rights.data||{});}else moderation?.setAccess({});
       failure='';
     }catch(error){if(ticket===authGeneration)failure='Your community profile could not connect. Reload or sign in again.';}
-    if(ticket===authGeneration)paint();
+    if(ticket===authGeneration){subscribe();paint();}
   }
   async function refreshMessages(ticket){
     if(!client||!session||!current.chatWindow||ticket!==generation||refreshing)return;
@@ -70,10 +74,10 @@ export function connectSharedChat(view){
     client=service;client.auth.onAuthStateChange(()=>{setTimeout(()=>refreshProfile(),0);});
     await refreshProfile();subscribe();paint();
   }).catch(()=>{failure='Community service could not connect. Reload to try again.';paint();});
-  let timer;
-  function startPolling(){if(timer==null)timer=setInterval(()=>{refreshProfile();if(current.chatWindow)refreshMessages(generation);},15000);}
+  let timer,messageTimer;
+  function startPolling(){if(timer==null)timer=setInterval(()=>{refreshProfile();},15000);if(messageTimer==null)messageTimer=setInterval(()=>{if(current.chatWindow)refreshMessages(generation);},3000);}
   startPolling();
-  window.addEventListener('pagehide',()=>{clearInterval(timer);timer=null;stop();});
+  window.addEventListener('pagehide',()=>{clearInterval(timer);clearInterval(messageTimer);timer=null;messageTimer=null;stop();moderation?.setAccess({});});
   window.addEventListener('pageshow',event=>{if(event.persisted){startPolling();refreshProfile().then(()=>{subscribe();paint();});}});
   return {update(state,next){
     const changed=next?.id!==session?.id||Boolean(state.chatWindow)!==Boolean(current.chatWindow);

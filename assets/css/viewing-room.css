@@ -18,3 +18,10 @@
 [data-chat-signin]{display:block;margin:0 0 .7rem;color:var(--ec-metal-bright);font-size:.85rem;text-align:center}
 
 .vr-chat-member{font-size:.78rem;color:var(--ec-text-soft);margin:0 0 .55rem;overflow-wrap:anywhere}
+
+/* Staff controls use existing room surfaces and remain private to authorized accounts. */
+.vr-moderate-button{margin-left:auto;border:1px solid var(--ec-border-strong);border-radius:.35rem;background:var(--ec-surface);color:var(--ec-text);font:inherit;font-size:1.2rem;padding:0 .55rem;cursor:pointer}
+.vr-moderation-panel{margin-top:1.2rem;padding:1.4rem;border:1px solid var(--ec-border-strong);border-radius:1rem;background:var(--ec-surface)}
+.vr-moderation-dialog{width:min(600px,calc(100% - 2rem));max-height:85dvh;overflow:auto;border:1px solid var(--ec-border-strong);border-radius:1rem;padding:1.5rem;background:var(--ec-surface);color:var(--ec-text)}
+.vr-moderation-dialog::backdrop{background:#000b}.vr-moderation-dialog label{display:grid;gap:.4rem;margin-block:1rem}.vr-moderation-dialog select,.vr-moderation-dialog textarea{width:100%;padding:.7rem;border:1px solid var(--ec-border-strong);border-radius:.4rem;background:var(--ec-bg);color:var(--ec-text);font:inherit}.vr-moderation-dialog .vr-checkbox{display:flex;align-items:center;gap:.6rem}
+.vr-moderation-dialog blockquote,.vr-incident blockquote{white-space:pre-wrap;overflow-wrap:anywhere;margin-inline:0;padding:1rem;border-left:3px solid var(--ec-metal-bright);background:var(--ec-bg)}.vr-incident{padding:1rem;border-bottom:1px solid var(--ec-border);overflow-wrap:anywhere}.vr-incident>summary{cursor:pointer;font-weight:600}.vr-incident button{margin:.6rem .5rem 0 0}.vr-incident p{white-space:pre-wrap}.vr-host-shows h2{font-size:1.1rem}

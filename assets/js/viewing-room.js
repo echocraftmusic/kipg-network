@@ -1,7 +1,7 @@
 import {roomState,easternTime} from './room-state.js?v=20261002-room-timing';
-import {attachChat} from './room-chat.js?v=20261003-emoji-stay';
+import {attachChat} from './room-chat.js?v=20261005-staff';
 import {loadSharedRoom} from './shared-room.js?v=20261003-shared';
-import {connectSharedChat} from './shared-chat.js?v=20261003-room-return';
+import {connectSharedChat} from './shared-chat.js?v=20261005-staff';
 import {rememberRoom} from './room-navigation.js?v=20261003-room-return';
 const $ = selector => document.querySelector(selector);
 const params = new URL(location.href).searchParams;
@@ -155,4 +155,5 @@ async function refresh() {
 $('[data-join]').addEventListener('click',()=>{joined=true;tick();});
 $('[data-catch-up]').addEventListener('click',()=>{if(ready && state().phase==='playing'){player.seekTo(state().position,true);player.playVideo();}});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){refresh();}});
-await refresh();setInterval(tick,1000);if(!rehearsalId)setInterval(refresh,15000);
+window.addEventListener('kipg-show-changed',()=>{if(!rehearsalId)refresh();});
+await refresh();setInterval(tick,1000);if(!rehearsalId)setInterval(refresh,5000);

@@ -15,7 +15,7 @@ export function attachChat(rehearsalId) {
   const emojiPicker=document.querySelector('[data-emoji-picker]');
   const emojiGrid=document.querySelector('[data-emoji-grid]');
   const emojis=[['😀','Grinning face'],['😃','Smiling face'],['😊','Happy smile'],['😁','Beaming smile'],['😂','Tears of joy'],['🤣','Laughing'],['🥹','Happy tears'],['😍','Heart eyes'],['🥰','Feeling loved'],['😎','Cool'],['🤔','Thinking'],['😮','Surprised'],['😢','Sad'],['😭','Crying'],['🙌','Raised hands'],['👏','Clapping'],['👍','Thumbs up'],['👎','Thumbs down'],['🙏','Prayer'],['🤝','Handshake'],['👋','Wave'],['💪','Strength'],['❤️','Red heart'],['💛','Gold heart'],['💙','Blue heart'],['💜','Purple heart'],['🤍','White heart'],['💔','Broken heart'],['🔥','Fire'],['✨','Sparkles'],['⭐','Star'],['🎉','Celebration'],['💯','One hundred'],['✅','Check mark'],['🕊️','Dove'],['✝️','Cross']];
-  let allowed=false,messages=[],cursorStart=0,cursorEnd=0,sender=null,sending=false;
+  let allowed=false,messages=[],cursorStart=0,cursorEnd=0,sender=null,sending=false,moderator=null;
   function rememberCursor(){cursorStart=input.selectionStart;cursorEnd=input.selectionEnd;}
   for(const event of ['select','keyup','click','input'])input.addEventListener(event,rememberCursor);
   function closePicker(focus=false){emojiPicker.hidden=true;emojiToggle.setAttribute('aria-expanded','false');if(focus)emojiToggle.focus();}
@@ -39,7 +39,9 @@ export function attachChat(rehearsalId) {
     const row=document.createElement('article');row.className='vr-chat-message';
     const header=document.createElement('header');const name=document.createElement('strong');name.textContent=message.username || 'You · rehearsal';
     const time=document.createElement('time');time.dateTime=message.at;time.textContent=new Date(message.at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
-    const text=document.createElement('p');text.textContent=message.text;header.append(name,time);row.append(header,text);log.append(row);
+    const text=document.createElement('p');text.textContent=message.text;header.append(name,time);
+    if(moderator&&message.id){const menu=document.createElement('button');menu.type='button';menu.className='vr-moderate-button';menu.textContent='⋮';menu.setAttribute('aria-label',`Moderate message from ${message.username}`);menu.addEventListener('click',()=>moderator(message));header.append(menu);}
+    row.append(header,text);log.append(row);
   }
   for(const message of messages)renderMessage(message);
   empty.hidden=messages.length>0;
@@ -71,6 +73,7 @@ export function attachChat(rehearsalId) {
     allowed=canPost;input.disabled=!allowed;send.disabled=!allowed||sending;emojiToggle.disabled=!allowed;if(!allowed)closePicker();hint.textContent=copy;input.placeholder=placeholder;
   }
   return {
+    setModerator(callback){if(moderator===callback)return;moderator=callback;log.replaceChildren();for(const message of messages)renderMessage(message);},
     setSender(callback){sender=callback;},
     setError(copy){error.textContent=copy;},
     setAccess(canPost,copy,placeholder){access(canPost,copy,placeholder);},
