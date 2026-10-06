@@ -115,3 +115,10 @@ Live anonymous API checks found the installed schedule/message tables reachable 
 ## Room return / rehearsal sign-in correction
 
 Troy's screenshots showed a signed-in member leaving a local rehearsal through the misleading chat sign-in link and returning to the empty public room. The member session remained signed in. Rehearsals now hide that link and explicitly say no sign-in is required. The community member button returns to the last viewing room, including a valid rehearsal UUID, via an origin/path-validated URL and tab-scoped storage. Sign-in links carry the same safe return context; callback URLs stay unchanged. Public chat also displays the saved username when closed. Back/forward-cache restoration restarts profile polling and the message subscription. Tests cover unsafe return URLs, clean callback restoration, blocked storage, and Back-button reconnection.
+
+
+## Resilient Submission Requirement
+
+KIPG must follow the Echo Craft Resilient Submission Standard documented in `docs/ECHO-CRAFT-RESILIENT-SUBMISSIONS.md` for any important user-submitted data.
+
+Prayer requests are not yet implemented as a completed production workflow. When they are built, treat them as sensitive submissions: use protected server-side fallback storage, admin-only visibility, automatic retry, duplicate protection, and purge the recovery copy after successful synchronization. Do not route full prayer text through a generic email fallback.
