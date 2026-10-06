@@ -860,3 +860,119 @@ body::before { display:none; }
   .kipg-nav__links a[aria-current="page"]::after { display:none; }
   .kipg-theme,.kipg-join { width:100%; }
 }
+
+
+/* Structural navigation update — primary navigation moved into the mother-of-pearl bar */
+.kipg-topbar {
+  min-height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+}
+
+.kipg-topbar__actions {
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+}
+
+.kipg-pearl-nav {
+  position:sticky;
+  top:72px;
+  z-index:95;
+}
+
+.kipg-pearl-nav__inner {
+  position:relative;
+  z-index:2;
+  min-height:82px;
+  display:grid;
+  grid-template-columns:repeat(8,minmax(0,1fr));
+  align-items:stretch;
+}
+
+.kipg-pearl-nav__link {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  padding:1rem .55rem;
+  text-align:center;
+  text-decoration:none;
+  color:#70470a;
+  font-size:.78rem;
+  font-weight:900;
+  letter-spacing:.055em;
+  text-transform:uppercase;
+  border-left:1px solid rgba(148,98,18,.22);
+  transition:background-color .18s ease,color .18s ease,box-shadow .18s ease;
+}
+
+.kipg-pearl-nav__link:first-child {
+  border-left:0;
+}
+
+.kipg-pearl-nav__link:hover,
+.kipg-pearl-nav__link:focus-visible {
+  color:#4f3005;
+  background:rgba(255,255,255,.20);
+}
+
+.kipg-pearl-nav__link[aria-current="page"] {
+  color:#3f2804;
+  background:rgba(255,255,255,.28);
+  box-shadow:inset 0 -4px 0 rgba(138,85,8,.58);
+}
+
+@media (max-width:900px) {
+  .kipg-topbar {
+    min-height:64px;
+  }
+
+  .kipg-pearl-nav {
+    top:64px;
+  }
+
+  .kipg-pearl-nav__inner {
+    display:flex;
+    min-height:72px;
+    overflow-x:auto;
+    scrollbar-width:thin;
+    scroll-snap-type:x proximity;
+  }
+
+  .kipg-pearl-nav__link {
+    flex:0 0 auto;
+    min-width:126px;
+    padding:.9rem .8rem;
+    scroll-snap-align:start;
+  }
+}
+
+@media (max-width:640px) {
+  .kipg-topbar__actions {
+    gap:.45rem;
+  }
+
+  .kipg-topbar .kipg-theme {
+    width:3rem;
+  }
+
+  .kipg-topbar .kipg-join {
+    width:auto;
+    min-height:2.55rem;
+    padding:.58rem .8rem;
+    font-size:.76rem;
+  }
+
+  .kipg-pearl-nav__inner {
+    min-height:66px;
+  }
+
+  .kipg-pearl-nav__link {
+    min-width:112px;
+    font-size:.68rem;
+    letter-spacing:.035em;
+  }
+}
