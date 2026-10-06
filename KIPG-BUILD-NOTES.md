@@ -122,3 +122,12 @@ Troy's screenshots showed a signed-in member leaving a local rehearsal through t
 KIPG must follow the Echo Craft Resilient Submission Standard documented in `docs/ECHO-CRAFT-RESILIENT-SUBMISSIONS.md` for any important user-submitted data.
 
 Prayer requests are not yet implemented as a completed production workflow. When they are built, treat them as sensitive submissions: use protected server-side fallback storage, admin-only visibility, automatic retry, duplicate protection, and purge the recovery copy after successful synchronization. Do not route full prayer text through a generic email fallback.
+
+
+## Prayer request workflow — prepared October 6, 2026
+
+The Prayer page now has the finished Phase 1 form presentation: required first name/initial, required email, required prayer text, and a required Yes/No contact preference with no default selection. The public email subject is intentionally generic: `Prayer Request`. The message body carries the submitted name, email, contact preference and prayer request. Reply-To is set to the visitor only when they explicitly request contact.
+
+The frontend is intentionally gated by `data/prayer-config.json` with `enabled: false` until the backend is deployed and tested. The prepared Supabase Edge Function `kipg-prayer-request` reuses the existing Resend infrastructure and delivers to `keepingitpg247@gmail.com`. It uses private temporary recovery storage, server-side validation, a honeypot/minimum-dwell check, and purges sensitive recovery fields after Resend accepts delivery. Anonymous/authenticated browser roles have no access to the recovery table.
+
+Before turning submissions on: run migration `20261006_005_prayer_requests.sql`, deploy the Edge Function, confirm the existing `RESEND_API_KEY` secret is available to it, perform a real delivery test, then change the prayer config to `enabled: true`.
