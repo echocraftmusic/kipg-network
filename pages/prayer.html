@@ -1,17 +1,125 @@
 <!doctype html>
-<html lang="en" data-ec-theme="kipg-dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Prayer on KIPG Network. Faith. Conversation. Community."><title>Prayer | KIPG Network</title><link rel="icon" href="../assets/images/kipg-network-logo.png"><link rel="stylesheet" href="../core/css/framework.css"><link rel="stylesheet" href="../assets/css/kipg.css"><script type="module" src="../core/js/app.js"></script><script type="module" src="../assets/js/kipg.js"></script></head><body><a class="ec-skip-link" href="#main">Skip to main content</a><header class="kipg-header">
+<html lang="en" data-ec-theme="kipg-dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Send a private prayer request to the KIPG Network prayer team.">
+  <meta name="theme-color" content="#050505">
+  <title>Prayer | KIPG Network</title>
+  <link rel="icon" href="../assets/images/kipg-network-logo.png">
+  <link rel="stylesheet" href="../core/css/framework.css">
+  <link rel="stylesheet" href="../assets/css/kipg.css">
+  <script type="module" src="../core/js/app.js"></script>
+  <script type="module" src="../assets/js/kipg.js"></script>
+  <script type="module" src="../assets/js/prayer.js"></script>
+</head>
+<body>
+  <a class="ec-skip-link" href="#main">Skip to main content</a>
+  <header class="kipg-header">
     <div class="kipg-shell kipg-topbar">
       <a class="kipg-brand" href="../index.html" aria-label="KIPG Network home">
         <img class="kipg-brand__logo" src="../assets/images/kipg-network-logo.png" alt="KIPG Network">
       </a>
       <div class="kipg-topbar__actions">
-        <a class="kipg-btn kipg-prayer-cta" href="prayer.html">Need Prayer?</a>
+        <a class="kipg-btn kipg-prayer-cta" href="prayer.html" aria-current="page">Need Prayer?</a>
         <button class="ec-icon-button kipg-theme" type="button" data-ec-theme-toggle><span aria-hidden="true" data-theme-label>☀︎</span><span class="ec-sr-only">Change color theme</span></button>
         <a class="kipg-btn kipg-join" href="community.html">Join KIPG Community</a>
       </div>
     </div>
-  </header><nav class="kipg-pearl-band kipg-pearl-nav" aria-label="Primary navigation">
+  </header>
+
+  <nav class="kipg-pearl-band kipg-pearl-nav" aria-label="Primary navigation">
     <div class="kipg-shell kipg-pearl-nav__inner">
       <a class="kipg-pearl-nav__link" href="../index.html">Home</a><a class="kipg-pearl-nav__link" href="watch.html">Watch</a><a class="kipg-pearl-nav__link" href="shows.html">Shows</a><a class="kipg-pearl-nav__link" href="live.html">Viewing Room</a><a class="kipg-pearl-nav__link" href="schedule.html">Schedule</a><a class="kipg-pearl-nav__link" href="community.html">Community</a><a class="kipg-pearl-nav__link" href="prayer.html" aria-current="page">Prayer</a><a class="kipg-pearl-nav__link" href="about.html">About</a>
     </div>
-  </nav><main id="main"><section class="kipg-page-hero kipg-shell"><p class="kipg-kicker">Faith and encouragement</p><h1>Prayer</h1><p>We believe in standing with one another in prayer.</p></section><section class="kipg-section"><div class="kipg-shell"><article class="kipg-content-card"><h2>Private prayer requests</h2><p>Private prayer request submissions are not open yet. We are preparing a way to share requests directly with the KIPG team.</p><p>Until then, you can find encouragement in our conversations about faith and hope.</p><a class="kipg-btn" href="watch.html?topic=hope#episodes">Find encouragement</a></article></div></section></main><footer class="kipg-footer"><div class="kipg-shell kipg-footer__row"><p>© <span data-current-year></span> KIPG Network.</p><p>Faith. Conversation. Community.</p></div></footer></body></html>
+  </nav>
+
+  <main id="main">
+    <section class="kipg-prayer-hero">
+      <div class="kipg-shell kipg-prayer-hero__inner">
+        <div>
+          <p class="kipg-kicker">You don't have to carry it alone</p>
+          <h1>How can we pray with you?</h1>
+          <p>Share what is on your heart. Your request will be sent privately to the KIPG prayer team.</p>
+        </div>
+        <div class="kipg-prayer-mark" aria-hidden="true">🙏</div>
+      </div>
+    </section>
+
+    <section class="kipg-section kipg-prayer-section">
+      <div class="kipg-shell kipg-prayer-layout">
+        <article class="kipg-prayer-form-card">
+          <div class="kipg-prayer-form-head">
+            <p class="kipg-kicker">Private prayer request</p>
+            <h2>We're here to pray with you.</h2>
+            <p>Only the information needed to receive your request and honor your contact preference is required.</p>
+          </div>
+
+          <form class="kipg-prayer-form" data-prayer-form novalidate>
+            <div class="kipg-prayer-grid">
+              <label class="kipg-field">
+                <span>First name or initial <strong aria-hidden="true">*</strong></span>
+                <input type="text" name="name" maxlength="60" autocomplete="given-name" required placeholder="First name or initial">
+              </label>
+
+              <label class="kipg-field">
+                <span>Email address <strong aria-hidden="true">*</strong></span>
+                <input type="email" name="email" maxlength="160" autocomplete="email" required placeholder="you@example.com">
+              </label>
+            </div>
+
+            <label class="kipg-field">
+              <span>Prayer request <strong aria-hidden="true">*</strong></span>
+              <textarea name="prayer_request" rows="8" maxlength="4000" required placeholder="Share your prayer request here..."></textarea>
+              <small><span data-prayer-count>0</span>/4000 characters</small>
+            </label>
+
+            <fieldset class="kipg-contact-choice">
+              <legend>Would you like someone from KIPG to contact you? <strong aria-hidden="true">*</strong></legend>
+              <div class="kipg-contact-options">
+                <label><input type="radio" name="contact_requested" value="yes" required><span><strong>Yes</strong><small>Someone from KIPG may reply to the email above.</small></span></label>
+                <label><input type="radio" name="contact_requested" value="no" required><span><strong>No</strong><small>Please pray for me, but I do not want follow-up contact.</small></span></label>
+              </div>
+            </fieldset>
+
+            <div class="kipg-prayer-trap" aria-hidden="true">
+              <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+            </div>
+
+            <div class="kipg-prayer-privacy">
+              <span aria-hidden="true">✦</span>
+              <p><strong>Your request stays private.</strong> It will be shared with the KIPG prayer team and will not be displayed publicly.</p>
+            </div>
+
+            <button class="kipg-btn kipg-prayer-submit" type="submit" data-prayer-submit>Send Prayer Request</button>
+            <p class="kipg-prayer-status" data-prayer-status role="status" aria-live="polite"></p>
+          </form>
+
+          <div class="kipg-prayer-success" data-prayer-success hidden>
+            <span aria-hidden="true">✓</span>
+            <p class="kipg-kicker">Request received</p>
+            <h2>Thank you for trusting us to pray with you.</h2>
+            <p>Your prayer request has been received by KIPG.</p>
+            <button class="kipg-btn kipg-btn--outline" type="button" data-prayer-another>Send another request</button>
+          </div>
+        </article>
+
+        <aside class="kipg-prayer-side">
+          <div class="kipg-prayer-side__card">
+            <p class="kipg-kicker">A place for faith</p>
+            <h2>Prayer is part of the community.</h2>
+            <p>KIPG exists for real conversations, real people and real hope. When you ask us to pray, we treat that trust with care.</p>
+          </div>
+          <div class="kipg-prayer-side__verse">
+            <span>“</span>
+            <blockquote>Pray for one another, that you may be healed.</blockquote>
+            <cite>James 5:16</cite>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="kipg-footer"><div class="kipg-shell kipg-footer__row"><p>© <span data-current-year></span> KIPG Network.</p><p>Faith. Conversation. Community.</p></div></footer>
+</body>
+</html>
