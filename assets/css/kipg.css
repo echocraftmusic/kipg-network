@@ -976,3 +976,32 @@ body::before { display:none; }
     letter-spacing:.035em;
   }
 }
+
+
+/* Persistent prayer help CTA */
+.kipg-prayer-cta {
+  background:linear-gradient(135deg,#f8f3ea 0%,#ffffff 35%,#efe7dd 70%,#fbf6ef 100%);
+  color:#5a3b0a;
+  border-color:rgba(215,157,32,.65);
+  box-shadow:0 8px 22px rgba(173,112,10,.10), inset 0 1px 0 rgba(255,255,255,.75);
+}
+
+.kipg-prayer-cta:hover,
+.kipg-prayer-cta:focus-visible {
+  color:#3f2804;
+  filter:brightness(1.03);
+}
+
+@media (max-width:640px) {
+  .kipg-topbar__actions {
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+
+  .kipg-prayer-cta,
+  .kipg-topbar .kipg-join {
+    min-height:2.45rem;
+    padding:.56rem .72rem;
+    font-size:.72rem;
+  }
+}
