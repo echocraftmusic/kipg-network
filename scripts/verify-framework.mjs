@@ -67,8 +67,8 @@ for (const file of await walk(root)) {
   if (!textExtensions.has(path.extname(file)) && !path.basename(file).startsWith(".env")) continue;
   const content = await readFile(file, "utf8");
   for (const check of secretPatterns) {
-    // Only this validated public configuration may contain a live project hostname.
-    if(check.name === "live Supabase hostname" && path.relative(root,file) === "data/community-auth.json")continue;
+    // Only these strictly validated public configurations may contain a project hostname.
+    if(check.name === "live Supabase hostname" && ["data/community-auth.json", "data/prayer-config.json"].includes(path.relative(root,file)))continue;
     if (check.pattern.test(content)) findings.push(`${path.relative(root, file)}: possible ${check.name}`);
   }
 
@@ -91,6 +91,8 @@ for (const file of await walk(root)) {
 
 const authConfig=JSON.parse(await readFile(path.join(root,"data/community-auth.json"),"utf8"));
 if(Object.keys(authConfig).sort().join(',')!=='projectUrl,publishableKey' || !/^https:\/\/[a-z0-9]{20}\.supabase\.co$/.test(authConfig.projectUrl) || !/^sb_publishable_[a-zA-Z0-9_-]+$/.test(authConfig.publishableKey))findings.push('Invalid public community auth configuration.');
+const prayerConfig=JSON.parse(await readFile(path.join(root,"data/prayer-config.json"),"utf8"));
+if(Object.keys(prayerConfig).sort().join(',')!=='enabled,functionName,projectUrl,publishableKey' || typeof prayerConfig.enabled!=='boolean' || prayerConfig.projectUrl!==authConfig.projectUrl || prayerConfig.publishableKey!==authConfig.publishableKey || prayerConfig.functionName!=='kipg-prayer-request')findings.push('Invalid public prayer configuration.');
 JSON.parse(await readFile(path.join(root, "core/config/site.json"), "utf8"));
 JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
 
