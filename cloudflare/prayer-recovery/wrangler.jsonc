@@ -1,0 +1,8 @@
+{
+  "name": "kipg-prayer-recovery",
+  "main": "worker.js",
+  "compatibility_date": "2026-10-07",
+  "r2_buckets": [{"binding": "PRAYER_RECOVERY", "bucket_name": "kipg-prayer-recovery"}],
+  "vars": {"SUBMISSIONS_ENABLED": "false", "DELIVERY_ENABLED": "false"},
+  "triggers": {"crons": ["*/5 * * * *"]}
+}
