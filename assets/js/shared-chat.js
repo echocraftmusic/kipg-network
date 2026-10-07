@@ -11,7 +11,7 @@ export function messageRows(rows){
 function createRoomMembers(){
   const heading=document.querySelector('.vr-chat-heading');
   if(!heading)return null;
-  const wrap=document.createElement('div');wrap.className='vr-members';
+  const wrap=document.createElement('div');wrap.className='vr-members';wrap.hidden=true;
   const button=document.createElement('button');button.type='button';button.className='vr-members-toggle';button.setAttribute('aria-expanded','false');button.textContent='Room Members';
   const panel=document.createElement('div');panel.className='vr-members-panel';panel.hidden=true;
   panel.innerHTML='<div class="vr-members-head"><strong>In the room</strong><span data-members-count>0</span></div><div data-members-list><p class="vr-members-empty">Connecting…</p></div><div data-hidden-members hidden><div class="vr-members-head vr-members-head--hidden"><strong>Hidden / Restricted</strong><span data-hidden-count>0</span></div><div data-hidden-list><p class="vr-members-empty">No hidden members.</p></div></div>';
@@ -34,7 +34,7 @@ function createRoomMembers(){
       if(guests){const row=document.createElement('div');row.className='vr-member-row';const name=document.createElement('span');name.textContent='Guest viewers ('+guests+')';row.append(name);list.append(row);}
       if(!attendees.length){const p=document.createElement('p');p.className='vr-members-empty';p.textContent='No one else is showing as present yet.';list.append(p);}
     },
-    setStaff(show){hiddenSection.hidden=!show;if(!show){hiddenCount.textContent='0';hiddenList.innerHTML='<p class="vr-members-empty">No hidden members.</p>';}} ,
+    setStaff(show){wrap.hidden=!show;hiddenSection.hidden=!show;if(!show){panel.hidden=true;button.setAttribute('aria-expanded','false');hiddenCount.textContent='0';hiddenList.innerHTML='<p class="vr-members-empty">No hidden members.</p>';}} ,
     renderHidden(items){
       hiddenSection.hidden=false;hiddenCount.textContent=String(items.length);hiddenList.replaceChildren();
       for(const item of items){const row=document.createElement('div');row.className='vr-member-row vr-member-row--hidden';const main=document.createElement('span');main.textContent=item.username||'Member';const meta=document.createElement('small');meta.textContent=item.label;row.append(main,meta);hiddenList.append(row);}
@@ -82,7 +82,7 @@ export function connectSharedChat(view){
     await startPresence();
   }
   async function refreshHiddenMembers(){
-    if(!client||!caps.moderator||!roomMembers)return;
+    if(!client||!(caps.moderator||caps.administrator)||!roomMembers)return;
     roomMembers.setStaff(true);
     try{
       const {data,error}=await client.rpc('kipg_review_incidents');if(error)throw error;
@@ -91,7 +91,7 @@ export function connectSharedChat(view){
       roomMembers.renderHidden([...byUser.values()].map(incident=>({username:incident.username,label:hiddenLabel(incident)})));
     }catch{roomMembers.renderHidden([]);}
   }
-  roomMembers?.wrap.addEventListener('vr-members-open',()=>{if(caps.moderator)void refreshHiddenMembers();});
+  roomMembers?.wrap.addEventListener('vr-members-open',()=>{if(caps.moderator||caps.administrator)void refreshHiddenMembers();});
 
   function paint(){
     const allowed=sharedCanPost(current,user,profile,connected);
@@ -112,7 +112,7 @@ export function connectSharedChat(view){
       if(ticket!==authGeneration)return;user=data.session?.user || null;
       if(previousUser!==user?.id){stop();moderation?.setAccess({});}
       if(user?.email_confirmed_at){const response=await client.rpc('kipg_ensure_profile');if(response.error)throw response.error;if(ticket!==authGeneration)return;profile=response.data;}
-      if(user?.email_confirmed_at){const rights=await client.rpc('kipg_capabilities');if(ticket!==authGeneration)return;caps=rights.error?{}:rights.data||{};moderation?.setAccess(caps);roomMembers?.setStaff(Boolean(caps.moderator));}else {caps={};moderation?.setAccess({});roomMembers?.setStaff(false);}
+      if(user?.email_confirmed_at){const rights=await client.rpc('kipg_capabilities');if(ticket!==authGeneration)return;caps=rights.error?{}:rights.data||{};moderation?.setAccess(caps);roomMembers?.setStaff(Boolean(caps.moderator||caps.administrator));}else {caps={};moderation?.setAccess({});roomMembers?.setStaff(false);}
       failure='';
     }catch(error){if(ticket===authGeneration)failure='Your community profile could not connect. Reload or sign in again.';}
     if(ticket===authGeneration){subscribe();paint();await restartPresence();}
