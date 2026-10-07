@@ -124,6 +124,36 @@ async function load() {
   }
 }
 function init(){
+  const header=document.querySelector('.kipg-header');
+  if(header){
+    const sizeHeader=()=>document.documentElement.style.setProperty('--kipg-header-height',`${header.getBoundingClientRect().height}px`);
+    sizeHeader();
+    if(typeof ResizeObserver!=='undefined')new ResizeObserver(sizeHeader).observe(header);
+    else window.addEventListener('resize',sizeHeader);
+  }
+  document.querySelectorAll('[data-recent-episodes], [data-episode-library]').forEach(row=>{
+    row.tabIndex=0;
+    row.setAttribute('role','region');
+    row.setAttribute('aria-label','Episodes. Swipe sideways or use arrow keys to browse.');
+    const controls=document.createElement('div');controls.className='kipg-swipe-hint';
+    const hint=document.createElement('span');hint.textContent='Swipe to browse episodes';
+    const previous=document.createElement('button'),next=document.createElement('button');
+    for(const [button,label,text] of [[previous,'Previous episode','←'],[next,'Next episode','→']]){
+      button.type='button';button.className='ec-icon-button';button.setAttribute('aria-label',label);button.textContent=text;
+    }
+    controls.append(hint,previous,next);row.before(controls);
+    const move=direction=>row.scrollBy({left:direction*((row.firstElementChild?.getBoundingClientRect().width||row.clientWidth)+parseFloat(getComputedStyle(row).gap||0)),behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+    const update=()=>{previous.disabled=row.scrollLeft<=2;next.disabled=row.scrollLeft>=row.scrollWidth-row.clientWidth-2;};
+    previous.addEventListener('click',()=>move(-1));next.addEventListener('click',()=>move(1));
+    row.addEventListener('scroll',update,{passive:true});
+    new MutationObserver(()=>{row.scrollLeft=0;update();}).observe(row,{childList:true});
+    new ResizeObserver(update).observe(row);update();
+    row.addEventListener('keydown',event=>{
+      if(event.target!==row||!['ArrowLeft','ArrowRight'].includes(event.key)||row.scrollWidth<=row.clientWidth)return;
+      event.preventDefault();
+      move(event.key==='ArrowRight'?1:-1);
+    });
+  });
   document.querySelectorAll('[data-current-year]').forEach(el=>el.textContent=new Date().getFullYear());
   schedule();
   if(document.querySelector('[data-youtube-featured], [data-episode-library]')) load();
