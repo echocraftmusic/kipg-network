@@ -37,7 +37,7 @@ function json(body,status=200,origin='') {
 }
 const pendingKey = id => `pending/${id}.json`;
 const receiptKey = id => `receipts/${id}.json`;
-export async function capture(request,env) {
+export async function capture(request,env,requestFetch=fetch) {
   const origin = request.headers.get('Origin') || '';
   if (request.method === 'GET' && new URL(request.url).pathname === '/') return json({service:'KIPG prayer recovery', submissionsEnabled:env.SUBMISSIONS_ENABLED === 'true'});
   if (!ORIGINS.has(origin)) return json({error:'Request unavailable'},403);
@@ -45,6 +45,17 @@ export async function capture(request,env) {
   if (request.method !== 'POST' || new URL(request.url).pathname !== '/submit') return json({error:'Request unavailable'},405,origin);
   if (env.SUBMISSIONS_ENABLED !== 'true' || !env.PRAYER_RECOVERY) return json({error:'Prayer requests are not open yet.'},503,origin);
   try {
+    // These guards also protect workers.dev; zone-only rules cannot cover it.
+    // Origin is a browser restriction, not authentication: scripts can forge it.
+    if (!env.TURNSTILE_SECRET_KEY || typeof env.PRAYER_RATE_LIMITER?.limit !== 'function') return json({error:'Prayer requests are temporarily unavailable.'},503,origin);
+    const ip=request.headers.get('CF-Connecting-IP');
+    if (!ip) return json({error:'Request unavailable'},403,origin);
+    const rate=await env.PRAYER_RATE_LIMITER.limit({key:`prayer-submit:${ip}`});
+    if (rate?.success !== true) {
+      const response=json({error:'Please wait a minute before trying again.'},429,origin);
+      response.headers.set('Retry-After','60');
+      return response;
+    }
     // Enforce the byte limit while reading, even if Content-Length is absent.
     const reader=request.body?.getReader();
     if (!reader) return json({error:'Please check the form.'},400,origin);
@@ -56,6 +67,14 @@ export async function capture(request,env) {
     const age=Date.now()-Number(p.startedAt);
     const payload=validate(p);
     if (!payload || !Number.isFinite(age) || age<2000 || age>3600000) return json({error:'Please check the form and try again.'},400,origin);
+    if (typeof p.turnstileToken !== 'string' || !p.turnstileToken || p.turnstileToken.length>2048) return json({error:'Please complete the security check.'},403,origin);
+    const verification=await requestFetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({secret:env.TURNSTILE_SECRET_KEY,response:p.turnstileToken,remoteip:ip}),
+      signal:AbortSignal.timeout(10000)
+    });
+    const verified=await verification.json();
+    if (!verification.ok || verified?.success!==true || verified.hostname!==new URL(origin).hostname || verified.action!=='prayer_submit' || verified.cdata!==payload.submissionId) return json({error:'Please repeat the security check.'},403,origin);
     if (await env.PRAYER_RECOVERY.head(receiptKey(payload.submissionId))) return json({status:'received',submissionId:payload.submissionId},200,origin);
     const key=pendingKey(payload.submissionId);
     const existing=await env.PRAYER_RECOVERY.get(key);
@@ -77,10 +96,12 @@ export async function retryPending(env, requestFetch=fetch) {
   if(!env.DELIVERY_SECRET || !env.DELIVERY_URL || !env.PRAYER_RECOVERY) throw new Error('Delivery configuration unavailable');
   const url=new URL(env.DELIVERY_URL);
   if(!/^https:\/\/[a-z0-9]{20}\.supabase\.co$/.test(url.origin) || url.pathname!=='/functions/v1/kipg-prayer-request') throw new Error('Unexpected delivery endpoint');
-  let cursor;
+  let cursor; let processed=0;
   do {
     const page=await env.PRAYER_RECOVERY.list({prefix:'pending/',limit:50,cursor});
     for(const object of page.objects) {
+      // Bound cron work even during a large backlog (20 seconds per attempt).
+      if (++processed>25) return;
       try {
         const item=await env.PRAYER_RECOVERY.get(object.key);
         if(!item) continue;
@@ -103,6 +124,6 @@ export async function retryPending(env, requestFetch=fetch) {
   } while(cursor);
 }
 export default {
-  fetch: capture,
+  fetch(request,env) {return capture(request,env);},
   async scheduled(event,env,ctx) {ctx.waitUntil(retryPending(env));}
 };

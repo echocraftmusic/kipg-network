@@ -3,6 +3,7 @@
   "main": "worker.js",
   "compatibility_date": "2026-10-07",
   "r2_buckets": [{"binding": "PRAYER_RECOVERY", "bucket_name": "kipg-prayer-recovery"}],
+  "ratelimits": [{"name": "PRAYER_RATE_LIMITER", "namespace_id": "2026100701", "simple": {"limit": 10, "period": 60}}],
   "vars": {"SUBMISSIONS_ENABLED": "false", "DELIVERY_ENABLED": "false"},
   "triggers": {"crons": ["*/5 * * * *"]}
 }
