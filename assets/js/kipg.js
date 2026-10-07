@@ -123,7 +123,41 @@ async function load() {
     const title=document.querySelector('[data-featured-title]');if(title) title.textContent='Explore KIPG Podcast';
   }
 }
+function mobileNavigation(){
+  const header=document.querySelector('.kipg-header'),topbar=header?.querySelector('.kipg-topbar');
+  const navigation=document.querySelector('.kipg-pearl-nav__inner');
+  const actions=header?.querySelector('.kipg-topbar__actions');
+  if(!topbar||!navigation||!actions)return;
+  const toggle=document.createElement('button');
+  toggle.type='button';toggle.className='ec-icon-button kipg-menu-toggle';
+  toggle.textContent='☰';toggle.setAttribute('aria-label','Open navigation menu');
+  toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-controls','kipg-mobile-menu');
+  const panel=document.createElement('div');panel.id='kipg-mobile-menu';panel.className='kipg-mobile-menu';panel.hidden=true;
+  const links=document.createElement('nav');links.setAttribute('aria-label','Mobile navigation');
+  navigation.querySelectorAll('a').forEach(link=>links.append(link.cloneNode(true)));
+  const extras=document.createElement('div');extras.className='kipg-mobile-menu__extras';
+  panel.append(links,extras);topbar.append(toggle);header.append(panel);
+  const theme=actions.querySelector('.kipg-theme'),join=actions.querySelector('.kipg-join');
+  const media=window.matchMedia('(max-width:768px)');
+  const close=(focus=false)=>{panel.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','Open navigation menu');if(focus)toggle.focus();};
+  const sync=()=>{
+    close();
+    if(media.matches){if(join)extras.append(join);if(theme)extras.append(theme);}
+    else {if(theme)actions.append(theme);if(join)actions.append(join);}
+  };
+  toggle.addEventListener('click',()=>{
+    const open=panel.hidden;panel.hidden=!open;toggle.setAttribute('aria-expanded',String(open));
+    toggle.setAttribute('aria-label',open?'Close navigation menu':'Open navigation menu');
+  });
+  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!panel.hidden)close(true);});
+  document.addEventListener('click',event=>{if(!panel.hidden&&!header.contains(event.target))close();});
+  panel.addEventListener('click',event=>{if(event.target.closest('a'))close();});
+  header.addEventListener('focusout',()=>setTimeout(()=>{if(!header.contains(document.activeElement))close();},0));
+  media.addEventListener('change',sync);sync();
+  document.documentElement.classList.add('kipg-mobile-nav-ready');
+}
 function init(){
+  mobileNavigation();
   const header=document.querySelector('.kipg-header');
   if(header){
     const sizeHeader=()=>document.documentElement.style.setProperty('--kipg-header-height',`${header.getBoundingClientRect().height}px`);
