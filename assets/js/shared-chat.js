@@ -53,7 +53,7 @@ function hiddenLabel(incident){
 export function connectSharedChat(view){
   const status=document.querySelector('[data-chat-status]'),copy=document.querySelector('[data-chat-copy]');
   const roomMembers=createRoomMembers();
-  let client=null,user=null,profile=null,current={},session=null,channel=null,presenceChannel=null,presenceIdentity='',caps={},generation=0,authGeneration=0,connected=false,rows=[],refreshing=false,arrivals=[],failure='';
+  let client=null,user=null,profile=null,current={},session=null,channel=null,presenceChannel=null,presenceIdentity='',presenceSignature='',caps={},generation=0,authGeneration=0,connected=false,rows=[],refreshing=false,arrivals=[],failure='';
   const moderation=document.querySelector('.vr-program')?attachModeration(view,()=>refreshMessages(generation)):null;
   function browserPresenceId(){
     try{let id=localStorage.getItem('kipg-room-presence-id');if(!id){id=crypto.randomUUID();localStorage.setItem('kipg-room-presence-id',id);}return id;}
@@ -68,6 +68,7 @@ export function connectSharedChat(view){
   async function startPresence(){
     if(!client||presenceChannel)return;
     presenceIdentity=user?.id||browserPresenceId();
+    presenceSignature=presenceIdentity+'|'+(profile?.username||'Guest viewer');
     presenceChannel=client.channel('kipg-room-presence-'+location.pathname,{config:{presence:{key:presenceIdentity}}})
       .on('presence',{event:'sync'},renderPresence)
       .on('presence',{event:'join'},renderPresence)
@@ -75,6 +76,8 @@ export function connectSharedChat(view){
       .subscribe(async state=>{if(state!=='SUBSCRIBED')return;await presenceChannel.track({username:profile?.username||'Guest viewer',online_at:new Date().toISOString()});renderPresence();});
   }
   async function restartPresence(){
+    const nextIdentity=user?.id||browserPresenceId(),nextSignature=nextIdentity+'|'+(profile?.username||'Guest viewer');
+    if(presenceChannel&&presenceSignature===nextSignature)return;
     if(presenceChannel&&client){const old=presenceChannel;presenceChannel=null;try{await old.untrack();}catch{}try{await client.removeChannel(old);}catch{}}
     await startPresence();
   }
