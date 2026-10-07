@@ -1,5 +1,5 @@
 import {roomState,easternTime} from './room-state.js?v=20261002-room-timing';
-import {attachChat} from './room-chat.js?v=20261005-staff';
+import {attachChat} from './room-chat.js?v=20261007-inline-chat';
 import {loadSharedRoom} from './shared-room.js?v=20261003-shared';
 import {connectSharedChat} from './shared-chat.js?v=20261005-staff';
 import {rememberRoom} from './room-navigation.js?v=20261003-room-return';

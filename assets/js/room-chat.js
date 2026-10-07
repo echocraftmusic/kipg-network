@@ -37,11 +37,11 @@ export function attachChat(rehearsalId) {
   function bottom(){scroller.scrollTop=scroller.scrollHeight;newer.hidden=true;}
   function renderMessage(message){
     const row=document.createElement('article');row.className='vr-chat-message';
-    const header=document.createElement('header');const name=document.createElement('strong');name.textContent=message.username || 'You · rehearsal';
+    const line=document.createElement('p');const name=document.createElement('strong');name.textContent=message.username || 'You · rehearsal';
     const time=document.createElement('time');time.dateTime=message.at;time.textContent=new Date(message.at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
-    const text=document.createElement('p');text.textContent=message.text;header.append(name,time);
-    if(moderator&&message.id){const menu=document.createElement('button');menu.type='button';menu.className='vr-moderate-button';menu.textContent='⋮';menu.setAttribute('aria-label',`Moderate message from ${message.username}`);menu.addEventListener('click',()=>moderator(message));header.append(menu);}
-    row.append(header,text);log.append(row);
+    const text=document.createElement('span');text.className='vr-chat-text';text.textContent=message.text;line.append(name,document.createTextNode(' '),text,document.createTextNode(' '),time);row.append(line);
+    if(moderator&&message.id){const menu=document.createElement('button');menu.type='button';menu.className='vr-moderate-button';menu.textContent='⋮';menu.setAttribute('aria-label',`Moderate message from ${message.username}`);menu.addEventListener('click',()=>moderator(message));row.append(menu);}
+    log.append(row);
   }
   for(const message of messages)renderMessage(message);
   empty.hidden=messages.length>0;
