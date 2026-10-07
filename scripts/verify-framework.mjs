@@ -92,7 +92,7 @@ for (const file of await walk(root)) {
 const authConfig=JSON.parse(await readFile(path.join(root,"data/community-auth.json"),"utf8"));
 if(Object.keys(authConfig).sort().join(',')!=='projectUrl,publishableKey' || !/^https:\/\/[a-z0-9]{20}\.supabase\.co$/.test(authConfig.projectUrl) || !/^sb_publishable_[a-zA-Z0-9_-]+$/.test(authConfig.publishableKey))findings.push('Invalid public community auth configuration.');
 const prayerConfig=JSON.parse(await readFile(path.join(root,"data/prayer-config.json"),"utf8"));
-if(Object.keys(prayerConfig).sort().join(',')!=='enabled,functionName,projectUrl,publishableKey' || typeof prayerConfig.enabled!=='boolean' || prayerConfig.projectUrl!==authConfig.projectUrl || prayerConfig.publishableKey!==authConfig.publishableKey || prayerConfig.functionName!=='kipg-prayer-request')findings.push('Invalid public prayer configuration.');
+if(Object.keys(prayerConfig).sort().join(',')!=='enabled,endpoint,turnstileSiteKey' || typeof prayerConfig.enabled!=='boolean' || prayerConfig.endpoint!=='https://kipg-prayer-recovery.echocraft-aimusic.workers.dev/submit' || !/^0x4[A-Za-z0-9_-]{15,40}$/.test(prayerConfig.turnstileSiteKey))findings.push('Invalid public prayer configuration.');
 JSON.parse(await readFile(path.join(root, "core/config/site.json"), "utf8"));
 JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
 
