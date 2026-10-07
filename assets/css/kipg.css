@@ -1086,9 +1086,10 @@ body::before { display:none; }
 html { scroll-padding-top:calc(var(--kipg-header-height) + 90px); }
 .kipg-pearl-nav { top:var(--kipg-header-height); }
 .kipg-host__label {
-  left:.65rem; right:.65rem; bottom:.65rem; transform:none;
+  left:50%; right:auto; bottom:.65rem; transform:translateX(-50%);
+  width:max-content; max-width:calc(100% - 1.3rem);
   min-width:0; padding:.6rem .75rem; text-align:left;
-  display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:.65rem;
+  display:grid; grid-template-columns:auto auto; column-gap:.75rem;
   align-items:center;
 }
 .kipg-host__label strong { font-size:1.2rem; grid-column:1; grid-row:1; }
