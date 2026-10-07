@@ -9,6 +9,8 @@
     "verify": "node scripts/verify-framework.mjs",
     "test:youtube": "node --test scripts/youtube-episode-data.test.mjs",
     "test:room": "node --test scripts/room-state.test.mjs",
-    "test:chat": "node --test scripts/shared-chat.test.mjs scripts/room-navigation.test.mjs"
+    "test:chat": "node --test scripts/shared-chat.test.mjs scripts/room-navigation.test.mjs",
+    "verify:seo": "node scripts/verify-seo.mjs",
+    "test": "node --test scripts/*.test.mjs cloudflare/prayer-recovery/worker.test.mjs supabase/functions/kipg-prayer-request/index.test.mjs"
   }
 }
