@@ -1,7 +1,7 @@
 import {getCommunityClient,communityError} from './community-client.js?v=20261003-shared';
 import {attachModeration} from './moderation.js?v=20261005-staff';
 export function sharedCanPost(state,user,profile,connected,now=Date.now()){
-  return Boolean(state?.chatWindow && user?.email_confirmed_at && profile && !profile.suspended && !(Date.parse(profile.muted_until)>now) && connected);
+  return Boolean(state?.chatWindow && user?.email_confirmed_at && profile && !profile.suspended && connected);
 }
 export function messageRows(rows){
   const unique=new Map();
@@ -95,7 +95,7 @@ export function connectSharedChat(view){
 
   function paint(){
     const allowed=sharedCanPost(current,user,profile,connected);
-    let hint=!current.chatWindow?'Chat opens 15 minutes before the show and closes five minutes afterward.':!client?'Connecting to community…':!user?'Sign in to join the conversation.':!user.email_confirmed_at?'Verify your email to chat.':!profile?'Preparing your community username…':profile.suspended?'Chat access is suspended.':Date.parse(profile.muted_until)>Date.now()?'Your chat access is temporarily muted.':!connected?'Reconnecting to shared chat…':`Chatting as ${profile.username}`;
+    let hint=!current.chatWindow?'Chat opens 15 minutes before the show and closes five minutes afterward.':!client?'Connecting to community…':!user?'Sign in to join the conversation.':!user.email_confirmed_at?'Verify your email to chat.':!profile?'Preparing your community username…':profile.suspended?'Chat access is suspended.':!connected?'Reconnecting to shared chat…':`Chatting as ${profile.username}`;
     if(!current.chatWindow && profile)hint=`Signed in as ${profile.username} · Chat opens with the next show.`;
     if(failure)hint=failure;
     document.querySelector('[data-chat-member]').textContent=profile?`Signed in as ${profile.username}`:user?'Signed in · preparing your username':client?'Watching as a guest':'Checking community account…';
