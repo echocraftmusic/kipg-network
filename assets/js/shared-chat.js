@@ -12,7 +12,7 @@ function createRoomMembers(){
   const heading=document.querySelector('.vr-chat-heading');
   if(!heading)return null;
   const wrap=document.createElement('div');wrap.className='vr-members';wrap.hidden=true;
-  const button=document.createElement('button');button.type='button';button.className='vr-members-toggle';button.setAttribute('aria-expanded','false');button.textContent='Room Members';
+  const button=document.createElement('button');button.type='button';button.className='vr-members-toggle';button.setAttribute('aria-expanded','false');button.textContent='Members';
   const panel=document.createElement('div');panel.className='vr-members-panel';panel.hidden=true;
   panel.innerHTML='<div class="vr-members-head"><strong>In the room</strong><span data-members-count>0</span></div><div data-members-list><p class="vr-members-empty">Connecting…</p></div><div data-hidden-members hidden><div class="vr-members-head vr-members-head--hidden"><strong>Hidden / Restricted</strong><span data-hidden-count>0</span></div><div data-hidden-list><p class="vr-members-empty">No hidden members.</p></div></div>';
   wrap.append(button,panel);heading.append(wrap);
@@ -28,16 +28,23 @@ function createRoomMembers(){
       const named=attendees.filter(item=>item.username&&item.username!=='Guest viewer');
       const guests=attendees.filter(item=>!item.username||item.username==='Guest viewer').length;
       count.textContent=String(attendees.length);
-      button.textContent='Room Members ('+attendees.length+')';
+      button.textContent='Members ('+attendees.length+')';
       list.replaceChildren();
       for(const item of named){const row=document.createElement('div');row.className='vr-member-row';const name=document.createElement('span');name.textContent=item.username;row.append(name);list.append(row);}
       if(guests){const row=document.createElement('div');row.className='vr-member-row';const name=document.createElement('span');name.textContent='Guest viewers ('+guests+')';row.append(name);list.append(row);}
       if(!attendees.length){const p=document.createElement('p');p.className='vr-members-empty';p.textContent='No one else is showing as present yet.';list.append(p);}
     },
     setStaff(show){wrap.hidden=!show;hiddenSection.hidden=!show;if(!show){panel.hidden=true;button.setAttribute('aria-expanded','false');hiddenCount.textContent='0';hiddenList.innerHTML='<p class="vr-members-empty">No hidden members.</p>';}} ,
-    renderHidden(items){
+    renderHidden(items,onRestore){
       hiddenSection.hidden=false;hiddenCount.textContent=String(items.length);hiddenList.replaceChildren();
-      for(const item of items){const row=document.createElement('div');row.className='vr-member-row vr-member-row--hidden';const main=document.createElement('span');main.textContent=item.username||'Member';const meta=document.createElement('small');meta.textContent=item.label;row.append(main,meta);hiddenList.append(row);}
+      for(const item of items){
+        const row=document.createElement('div');row.className='vr-member-row vr-member-row--hidden';
+        const copy=document.createElement('div');copy.className='vr-hidden-member-copy';
+        const main=document.createElement('span');main.textContent=item.username||'Member';
+        const meta=document.createElement('small');meta.textContent=item.label;copy.append(main,meta);row.append(copy);
+        if(onRestore){const restore=document.createElement('button');restore.type='button';restore.className='vr-member-restore';restore.textContent='Restore';restore.addEventListener('click',()=>onRestore(item));row.append(restore);}
+        hiddenList.append(row);
+      }
       if(!items.length){const p=document.createElement('p');p.className='vr-members-empty';p.textContent='No currently hidden members.';hiddenList.append(p);}
     }
   };
@@ -81,6 +88,17 @@ export function connectSharedChat(view){
     if(presenceChannel&&client){const old=presenceChannel;presenceChannel=null;try{await old.untrack();}catch{}try{await client.removeChannel(old);}catch{}}
     await startPresence();
   }
+  async function restoreHiddenMember(item){
+    if(!client||!caps.administrator||!item?.id)return;
+    const note=prompt('Why are you restoring this member to public chat?');
+    if(!note?.trim())return;
+    try{
+      const {error}=await client.rpc('kipg_restore_incident',{target_incident:item.id,reverse_mistake:false,review_explanation:note.trim()});
+      if(error)throw error;
+      await refreshHiddenMembers();
+      await refreshMessages(generation);
+    }catch(error){view.setError(communityError(error));}
+  }
   async function refreshHiddenMembers(){
     if(!client||!(caps.moderator||caps.administrator)||!roomMembers)return;
     roomMembers.setStaff(true);
@@ -88,7 +106,7 @@ export function connectSharedChat(view){
       const {data,error}=await client.rpc('kipg_review_incidents');if(error)throw error;
       const byUser=new Map();
       for(const incident of data||[]){if(incident.action!=='hide'||incident.reversed_at||incident.restored_at)continue;if(incident.until_at&&Date.parse(incident.until_at)<=Date.now())continue;const key=incident.username||incident.member_id||incident.id;const previous=byUser.get(key);if(!previous||Date.parse(incident.created_at)>Date.parse(previous.created_at))byUser.set(key,incident);}
-      roomMembers.renderHidden([...byUser.values()].map(incident=>({username:incident.username,label:hiddenLabel(incident)})));
+      roomMembers.renderHidden([...byUser.values()].map(incident=>({id:incident.id,username:incident.username,label:hiddenLabel(incident)})),caps.administrator?restoreHiddenMember:null);
     }catch{roomMembers.renderHidden([]);}
   }
   roomMembers?.wrap.addEventListener('vr-members-open',()=>{if(caps.moderator||caps.administrator)void refreshHiddenMembers();});
