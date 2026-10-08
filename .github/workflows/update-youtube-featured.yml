@@ -9,7 +9,7 @@ on:
       - 'scripts/*youtube*'
       - 'data/episode-editorial.json'
   schedule:
-    - cron: '0 19 * * 6'
+    - cron: '0 1 * * 4'
       timezone: 'America/New_York'
 
 permissions:
