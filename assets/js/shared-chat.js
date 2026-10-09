@@ -1,7 +1,9 @@
 import {getCommunityClient,communityError} from './community-client.js?v=20261003-shared';
 import {attachModeration} from './moderation.js?v=20261005-staff';
 export function sharedCanPost(state,user,profile,connected,now=Date.now()){
-  return Boolean(state?.chatWindow && user?.email_confirmed_at && profile && !profile.suspended && connected);
+  const mutedUntil=profile?.muted_until ? Date.parse(profile.muted_until) : NaN;
+  const muted=Number.isFinite(mutedUntil) && mutedUntil>now;
+  return Boolean(state?.chatWindow && user?.email_confirmed_at && profile && !profile.suspended && !muted && connected);
 }
 export function messageRows(rows){
   const unique=new Map();
@@ -9,6 +11,7 @@ export function messageRows(rows){
   return [...unique.values()].sort((a,b)=>Date.parse(a.at)-Date.parse(b.at)||a.id.localeCompare(b.id)).slice(-100);
 }
 function createRoomMembers(){
+  if(typeof document?.createElement!=='function')return null;
   const heading=document.querySelector('.vr-chat-heading');
   if(!heading)return null;
   const wrap=document.createElement('div');wrap.className='vr-members';wrap.hidden=true;
