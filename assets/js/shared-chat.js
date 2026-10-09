@@ -79,7 +79,7 @@ export function connectSharedChat(view){
     if(!client||presenceChannel)return;
     presenceIdentity=user?.id||browserPresenceId();
     presenceSignature=presenceIdentity+'|'+(profile?.username||'Guest viewer');
-    presenceChannel=client.channel('kipg-room-presence-'+location.pathname,{config:{presence:{key:presenceIdentity}}})
+    presenceChannel=client.channel('kipg-room-presence-'+(globalThis.location?.pathname||'viewing-room'),{config:{presence:{key:presenceIdentity}}})
       .on('presence',{event:'sync'},renderPresence)
       .on('presence',{event:'join'},renderPresence)
       .on('presence',{event:'leave'},renderPresence)
