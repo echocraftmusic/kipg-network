@@ -70,7 +70,7 @@ export function connectSharedChat(view){
     catch{return crypto.randomUUID();}
   }
   function renderPresence(){
-    if(!presenceChannel||!roomMembers)return;
+    if(!presenceChannel||!roomMembers||typeof presenceChannel.presenceState!=='function')return;
     const state=presenceChannel.presenceState(),attendees=[];
     for(const entries of Object.values(state||{})){const latest=Array.isArray(entries)?entries.at(-1):null;if(latest)attendees.push({username:latest.username||'Guest viewer',online_at:latest.online_at||''});}
     roomMembers.render(attendees);
@@ -83,7 +83,7 @@ export function connectSharedChat(view){
       .on('presence',{event:'sync'},renderPresence)
       .on('presence',{event:'join'},renderPresence)
       .on('presence',{event:'leave'},renderPresence)
-      .subscribe(async state=>{if(state!=='SUBSCRIBED')return;await presenceChannel.track({username:profile?.username||'Guest viewer',online_at:new Date().toISOString()});renderPresence();});
+      .subscribe(async state=>{if(state!=='SUBSCRIBED'||typeof presenceChannel?.track!=='function')return;await presenceChannel.track({username:profile?.username||'Guest viewer',online_at:new Date().toISOString()});renderPresence();});
   }
   async function restartPresence(){
     const nextIdentity=user?.id||browserPresenceId(),nextSignature=nextIdentity+'|'+(profile?.username||'Guest viewer');
