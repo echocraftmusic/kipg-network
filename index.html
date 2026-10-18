@@ -25,6 +25,17 @@
   <meta name="twitter:description" content="Explore KIPG Network and the Keeping It PG Podcast: honest conversations about Christian faith, relationships, purpose and everyday life.">
   <meta name="twitter:image" content="https://kipgnetwork.com/assets/images/kipg-network-logo.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "KIPG Network", "url": "https://kipgnetwork.com/", "logo": "https://kipgnetwork.com/assets/images/kipg-network-logo.png"}</script>
+  <style>
+    /* Homepage premium partner inventory: independent tiles now, mergeable CSS grid later. */
+    .kipg-partners{padding-top:0}
+    .kipg-partners__status{font-size:.8rem;color:var(--ec-text-soft);text-align:right}
+    .kipg-partners__grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+    .kipg-partners__tile{min-width:0;aspect-ratio:4/3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.65rem;padding:1rem;background:linear-gradient(145deg,var(--ec-surface),var(--ec-bg-deep));border:1px solid color-mix(in srgb,var(--ec-metal) 45%,var(--ec-border));border-radius:.35rem;overflow:hidden}
+    .kipg-partners__tile img{width:100%;max-width:175px;height:65%;object-fit:contain}
+    .kipg-partners__tile span{font-size:.68rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;text-align:center;color:var(--ec-text-soft)}
+    @media(max-width:700px){.kipg-partners__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.kipg-partners__status{font-size:.72rem}.kipg-partners__tile{padding:.75rem}}
+    @media(max-width:380px){.kipg-partners__tile span{font-size:.57rem}}
+  </style>
 </head>
 <body>
   <a class="ec-skip-link" href="#main">Skip to main content</a>
@@ -98,6 +109,22 @@
               </div>
             </div>
           </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reserved premium placements: future campaigns can merge adjacent columns into one seamless creative. -->
+    <section class="kipg-section kipg-partners" aria-labelledby="kipg-partners-title">
+      <div class="kipg-shell">
+        <div class="kipg-section__head">
+          <div><p class="kipg-kicker">Premium Placements</p><h2 id="kipg-partners-title">Our Community Partners</h2></div>
+          <span class="kipg-partners__status">Reserved for future partners</span>
+        </div>
+        <div class="kipg-partners__grid" aria-label="Four reserved premium partner placements">
+          <div class="kipg-partners__tile"><img src="assets/images/kipg-network-logo.png" alt="KIPG Network"><span>Premium Placement 01</span></div>
+          <div class="kipg-partners__tile"><img src="assets/images/kipg-network-logo.png" alt="KIPG Network"><span>Premium Placement 02</span></div>
+          <div class="kipg-partners__tile"><img src="assets/images/kipg-network-logo.png" alt="KIPG Network"><span>Premium Placement 03</span></div>
+          <div class="kipg-partners__tile"><img src="assets/images/kipg-network-logo.png" alt="KIPG Network"><span>Premium Placement 04</span></div>
         </div>
       </div>
     </section>
