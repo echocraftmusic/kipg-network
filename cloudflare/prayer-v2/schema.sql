@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS prayer_requests (
   received_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   reviewed_at TEXT,
-  closed_at TEXT
+  closed_at TEXT,
+  notification_sent_at TEXT
 );
 CREATE INDEX IF NOT EXISTS prayer_requests_status_received ON prayer_requests(status,received_at);
 -- No browser, public search, or unauthenticated read of this D1 database is permitted.
