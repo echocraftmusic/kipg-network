@@ -80,7 +80,7 @@ function syncContactRequirement(){
  const label=document.querySelector('[data-email-requirement]');
  if(label)label.textContent=needed?'(required for follow-up)':'(optional if no follow-up)';
 }
-form?.querySelectorAll('[name="contact_requested"]').forEach(radio=>radio.addEventListener('change',syncContactRequirement));
+form?.querySelectorAll?.('[name="contact_requested"]')?.forEach(radio=>radio.addEventListener('change',syncContactRequirement));
 syncContactRequirement();
 another?.addEventListener('click',()=>{
   success.hidden=true;
