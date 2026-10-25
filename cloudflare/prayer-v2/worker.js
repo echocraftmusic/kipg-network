@@ -102,6 +102,28 @@ export async function capture(request,env,requestFetch=fetch) {
     return json({status:'received',submissionId:payload.submissionId},200,origin);
   } catch { return json({error:'We could not confirm receipt. Please keep your request and try again.'},503,origin); }
 }
-// No public list/read/status routes. The staff-only review service will be
-// implemented separately with server-verified authorization before launch.
-export default {fetch(request,env){return capture(request,env);}};
+// Deliver only a generic notification, never a name, contact address or prayer text.
+// Retry unnotified requests via Cloudflare cron. Resend idempotency helps prevent duplicates.
+export async function notifyPending(env,requestFetch=fetch){
+ if(env.NOTIFICATIONS_ENABLED!=='true')return;
+ if(!env.PRAYER_DB||!env.RESEND_API_KEY||!env.PRAYER_NOTIFICATION_FROM||!env.PRAYER_NOTIFICATION_TO)throw Error('Notification service not configured');
+ if(env.PRAYER_NOTIFICATION_TO.trim().toLowerCase()!=='prayers@kipgnetwork.com')throw Error('Unexpected prayer mailbox');
+ const rows=await env.PRAYER_DB.prepare('SELECT id FROM prayer_requests WHERE notification_sent_at IS NULL ORDER BY received_at ASC LIMIT 20').all();
+ for(const row of rows.results||[]){
+  try{
+   const response=await requestFetch('https://api.resend.com/emails',{
+     method:'POST',
+     headers:{'Authorization':'Bearer '+env.RESEND_API_KEY,'Content-Type':'application/json','Idempotency-Key':'kipg-prayer-notify-'+row.id},
+     body:JSON.stringify({from:env.PRAYER_NOTIFICATION_FROM,to:[env.PRAYER_NOTIFICATION_TO],subject:'New KIPG prayer request',text:'A new confidential prayer request has been received. Sign in to the protected KIPG Prayer Ministry dashboard to review it. No prayer details are sent by email.'}),
+     signal:AbortSignal.timeout(10000)
+   });
+   if(!response.ok)throw Error('Provider did not accept notification');
+   await env.PRAYER_DB.prepare("UPDATE prayer_requests SET notification_sent_at=?1 WHERE id=?2 AND notification_sent_at IS NULL").bind(new Date().toISOString(),row.id).run();
+  }catch{console.warn('KIPG prayer: a notification remains queued.');}
+ }
+}
+export default {
+ fetch(request,env){return capture(request,env);},
+ async scheduled(event,env,ctx){ctx.waitUntil(notifyPending(env));}
+};
+
