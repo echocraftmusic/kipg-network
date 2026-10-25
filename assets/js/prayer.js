@@ -49,7 +49,9 @@ function valid(){
   const email=form.elements.email.value.trim();
   const request=form.elements.prayer_request.value.trim();
   const contact=form.elements.contact_requested.value;
-  if(name.length<1||email.length<5||request.length<5||!['yes','no'].includes(contact))return false;
+  if(name.length<1||request.length<5||!['yes','no'].includes(contact))return false;
+  if(contact==='yes'&&(!email||!form.elements.email.checkValidity()))return false;
+  if(email&&!form.elements.email.checkValidity())return false;
   return true;
 }
 async function loadConfig(){
@@ -71,10 +73,20 @@ async function loadConfig(){
   }
 }
 textarea?.addEventListener('input',()=>{if(count)count.textContent=String(textarea.value.length);});
+function syncContactRequirement(){
+ if(!form)return;
+ const needed=form.elements.contact_requested.value==='yes';
+ form.elements.email.required=needed;
+ const label=document.querySelector('[data-email-requirement]');
+ if(label)label.textContent=needed?'(required for follow-up)':'(optional if no follow-up)';
+}
+form?.querySelectorAll('[name="contact_requested"]').forEach(radio=>radio.addEventListener('change',syncContactRequirement));
+syncContactRequirement();
 another?.addEventListener('click',()=>{
   success.hidden=true;
   form.hidden=false;
   form.reset();
+  syncContactRequirement();
   if(count)count.textContent='0';
   startedAt=Date.now();
   submissionId=crypto.randomUUID();lastBody='';resetSecurity();
