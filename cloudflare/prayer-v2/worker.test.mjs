@@ -34,3 +34,11 @@ test('notifications are disabled by default and contain no prayer details when e
  await notifyPending(env,async(url,options)=>{calls++;assert.equal(url,'https://api.resend.com/emails');assert.ok(!options.body.includes(base.prayerRequest));assert.ok(!options.body.includes(base.email));assert.ok(!options.body.includes(base.name));return Response.json({id:'test'});});
  assert.equal(calls,1);
 });
+
+test('no-follow-up requests may omit email; follow-up requires verified email syntax',async()=>{
+ const first=setup(),noEmail={...base,email:'',contactRequested:false};
+ assert.equal((await capture(request(noEmail),first.env,siteverify)).status,200);
+ const second=setup(),needsEmail={...base,email:'',contactRequested:true};
+ assert.equal((await capture(request(needsEmail),second.env,siteverify)).status,400);
+ assert.equal(second.objects.size,0);
+});
