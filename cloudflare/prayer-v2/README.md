@@ -22,3 +22,21 @@
 
 ## Pilot conventions
 The first-name-or-initial and email fields are still required by the current form; revisit anonymous prayer support before launch. Keep this feature free of Supabase dependencies.
+
+## Implemented in GitHub (not yet deployed)
+- `worker.js`: public intake with Turnstile, rate limits, R2 encryption, D1 request metadata, and generic Resend notifications retried by cron. Default state remains OFF.
+- `admin-worker.js`: standalone Cloudflare Access-protected private dashboard; reads/decrypts encrypted R2 records and updates status in D1. Uses verified Access RS256 JWT + explicit `PRAYER_ADMIN_EMAILS` allowlist. The admin URL is **not** an ordinary static GitHub Pages route.
+- `schema.sql`: includes status queue, notification receipt timestamp, and staff audit records.
+- `worker.test.mjs`: unit tests; run `node --test cloudflare/prayer-v2/worker.test.mjs`.
+
+## Cloudflare operator deployment checklist (must complete before enabling)
+1. Create a **private** D1 database (suggested `kipg-prayer`) through Cloudflare Workers & Pages -> D1. Execute `schema.sql` in its console. Supply its binding as `PRAYER_DB` to **both** new Workers.
+2. Bind existing private R2 bucket `kipg-prayer-recovery` as `PRAYER_RECOVERY` to both new Workers. Back up `RECOVERY_ENCRYPTION_KEY` securely and bind exactly the same key to both Workers; avoid key rotation without re-encrypting existing objects.
+3. Deploy the public intake Worker separately from the admin Worker; connect Turnstile secret `TURNSTILE_SECRET_KEY`, rate limiter `PRAYER_RATE_LIMITER`, `SUBMISSIONS_ENABLED=false`, and the existing controlled origin policy. The website `data/prayer-config.json` must remain `enabled:false`.
+4. Configure the restricted admin Worker on a **separate hostname** protected by a Cloudflare Access application and an Access allow policy for PG and Troy, requiring strong identity verification/MFA. Supply `ACCESS_TEAM_DOMAIN=https://<team>.cloudflareaccess.com`, the application's `ACCESS_AUD`, and secret `PRAYER_ADMIN_EMAILS` with only approved verified email addresses. Access policies alone are insufficient; Worker also verifies the signed JWT and exact email allowlist.
+5. Establish `prayers@kipgnetwork.com` and validate outgoing domain via the chosen notification provider (Resend integration currently coded). Provide `RESEND_API_KEY`, `PRAYER_NOTIFICATION_FROM`, and `PRAYER_NOTIFICATION_TO=prayers@kipgnetwork.com` to intake Worker only. Leave `NOTIFICATIONS_ENABLED=false` until verified and monitor cron errors. Configure a cron trigger, e.g. `*/5 * * * *`.
+6. Test with synthetic prayers only: blocked unauthenticated staff URLs, Cloudflare Access JWT validation, encryption/decryption, D1 and R2 outage handling, same-origin anti-CSRF status edits, duplicate submissions, Turnstile anti-bot checks, rate limits, authorized status updates, email acceptance and retries. Verify audit rows for status changes.
+7. Set documented retention, data deletion and archival procedures and key backup/recovery; define handling of urgent threats and sensitive requests. Establish monitoring so undelivered notifications and unread prayers are visible.
+8. **Only after** the protected dashboard, privacy policies, mailbox and end-to-end test succeed: update the website endpoint, turn on the intake Worker `SUBMISSIONS_ENABLED`, and finally set `data/prayer-config.json` to `enabled:true`. Never enable the legacy Supabase prayer-delivery flags.
+
+The repository is public; never commit Wrangler account IDs, API keys, auth tokens, mailbox passwords, prayer content, or real request exports. Cloudflare secrets must be configured in the platform.
