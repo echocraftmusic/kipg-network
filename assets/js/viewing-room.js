@@ -18,19 +18,23 @@ const layout=$('.vr-layout');
 const chatPanel=$('.vr-chat');
 const wideButton=$('[data-wide-video]');
 const fullscreenButton=$('[data-fullscreen-video]');
-const sizeChat=()=>{const height=`${$('.vr-theater').getBoundingClientRect().height}px`;chatPanel.style.setProperty('--vr-chat-height',height);$('[data-chat-rail]').style.setProperty('--vr-chat-height',height);};
-new ResizeObserver(sizeChat).observe($('.vr-theater'));
-sizeChat();
-function setWide(wide){
-  layout.classList.toggle('vr-layout--wide',wide);
-  chatPanel.hidden=wide;
-  $('[data-chat-rail]').hidden=!wide;
-  wideButton.textContent=wide?'Show chat':'Expand video';
-  wideButton.setAttribute('aria-pressed',String(wide));
-  if(wide && chatPanel.contains(document.activeElement))wideButton.focus();
+const expandChatButton=$('[data-chat-expand]');
+function setWide(hidden){
+  layout.classList.toggle('vr-layout--wide',hidden);
+  chatPanel.hidden=hidden;
+  $('[data-chat-rail]').hidden=!hidden;
+  wideButton.textContent=hidden?'Show chat':'Hide chat';
+  wideButton.setAttribute('aria-pressed',String(hidden));
+  wideButton.setAttribute('aria-expanded',String(!hidden));
+  if(hidden && chatPanel.contains(document.activeElement))wideButton.focus();
 }
 wideButton.addEventListener('click',()=>setWide(!layout.classList.contains('vr-layout--wide')));
 $('[data-restore-chat]').addEventListener('click',()=>{setWide(false);wideButton.focus();});
+expandChatButton.addEventListener('click',()=>{
+  const expanded=chatPanel.classList.toggle('vr-chat--expanded');
+  expandChatButton.textContent=expanded?'Compact chat':'Expand chat';
+  expandChatButton.setAttribute('aria-pressed',String(expanded));
+});
 function maximizeFallback(active){
   screen.classList.toggle('vr-screen--maximized',active);
   document.body.classList.toggle('vr-video-maximized',active);
