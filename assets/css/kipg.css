@@ -1176,3 +1176,18 @@ html { scroll-padding-top:calc(var(--kipg-header-height) + 90px); }
   .kipg-mobile-menu__extras .kipg-theme { width:44px; height:44px; flex-shrink:0; background:#fff9ed; color:#4f3005; border-color:#a47a32; }
   .kipg-mobile-nav-ready { scroll-padding-top:80px; }
 }
+
+/* KIPG Need Prayer? — accessible pearl-and-gold breathing illumination. */
+.kipg-prayer-cta{
+  position:relative;
+  isolation:isolate;
+  animation:kipg-prayer-breathe 6s ease-in-out infinite;
+  will-change:auto;
+}
+@keyframes kipg-prayer-breathe{
+  0%,100%{box-shadow:0 8px 22px rgba(173,112,10,.10), inset 0 1px 0 rgba(255,255,255,.75);border-color:rgba(215,157,32,.65)}
+  45%,55%{box-shadow:0 0 12px rgba(225,175,71,.38),0 0 25px rgba(225,175,71,.22),0 8px 22px rgba(173,112,10,.15),inset 0 1px 0 rgba(255,255,255,.9);border-color:#efd08b}
+}
+@media(prefers-reduced-motion:reduce){
+  .kipg-prayer-cta{animation:none;box-shadow:0 0 10px rgba(225,175,71,.22),0 8px 22px rgba(173,112,10,.10)}
+}
