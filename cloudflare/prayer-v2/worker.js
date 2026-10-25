@@ -27,7 +27,9 @@ function validate(p) {
     if (typeof p[field] !== 'string' || p[field].length > max) return null;
     result[field] = p[field].trim();
   }
-  if (!result.name || result.prayerRequest.length < 5 || typeof result.contactRequested !== 'boolean' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(result.email)) return null;
+  if (!result.name || result.prayerRequest.length < 5 || typeof result.contactRequested !== 'boolean') return null;
+  if (result.contactRequested && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(result.email)) return null;
+  if (!result.contactRequested && result.email && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(result.email)) return null;
   return result;
 }
 function json(body,status=200,origin='') {
