@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 const source=await readFile(new URL('../assets/js/prayer.js',import.meta.url),'utf8');
 async function setup(enabled=true){
- const handlers={},elements={name:{value:'Test',focus(){}},email:{value:'test@example.com',checkValidity(){return !this.value||/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(this.value)}},prayer_request:{value:'Private prayer',addEventListener(){}},contact_requested:{value:'no'},website:{value:''}};
+ const handlers={},elements={name:{value:'Test',focus(){}},email:{value:'test@example.com',checkValidity(){return this.value.includes('@')&&this.value.includes('.')}},prayer_request:{value:'Private prayer',addEventListener(){}},contact_requested:{value:'no'},website:{value:''}};
  const form={elements,hidden:false,reportValidity:()=>true,setAttribute(){},addEventListener(name,fn){handlers[name]=fn;},reset(){elements.prayer_request.value='';}};
  const submit={disabled:true},status={dataset:{}},success={hidden:true};let options,requests=[],response=()=>Response.json({status:'received',submissionId:requests.at(-1).submissionId});
  const nodes={'[data-prayer-form]':form,'[data-prayer-submit]':submit,'[data-prayer-status]':status,'[data-prayer-success]':success,'[data-prayer-security]':{}};
