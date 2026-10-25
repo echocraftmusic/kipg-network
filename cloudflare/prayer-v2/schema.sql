@@ -14,3 +14,13 @@ CREATE TABLE IF NOT EXISTS prayer_requests (
 CREATE INDEX IF NOT EXISTS prayer_requests_status_received ON prayer_requests(status,received_at);
 -- No browser, public search, or unauthenticated read of this D1 database is permitted.
 -- Administrative access is intentionally NOT exposed by the submission Worker.
+
+-- Staff accountability without storing prayer text or PII in D1.
+CREATE TABLE IF NOT EXISTS prayer_audit (
+ id INTEGER PRIMARY KEY AUTOINCREMENT,
+ request_id TEXT NOT NULL REFERENCES prayer_requests(id),
+ actor_email TEXT NOT NULL,
+ action TEXT NOT NULL,
+ created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS prayer_audit_request ON prayer_audit(request_id,created_at);
