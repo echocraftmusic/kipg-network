@@ -69,6 +69,7 @@ export function connectSharedChat(view){
     try{let id=localStorage.getItem('kipg-room-presence-id');if(!id){id=crypto.randomUUID();localStorage.setItem('kipg-room-presence-id',id);}return id;}
     catch{return crypto.randomUUID();}
   }
+  // Retained for a future authenticated staff-only presence implementation; never activated publicly.
   function renderPresence(){
     if(!presenceChannel||!roomMembers||typeof presenceChannel.presenceState!=='function')return;
     const state=presenceChannel.presenceState(),attendees=[];
@@ -112,7 +113,7 @@ export function connectSharedChat(view){
       roomMembers.renderHidden([...byUser.values()].map(incident=>({id:incident.id,username:incident.username,label:hiddenLabel(incident)})),caps.administrator?restoreHiddenMember:null);
     }catch{roomMembers.renderHidden([]);}
   }
-  roomMembers?.wrap.addEventListener('vr-members-open',()=>{if(caps.moderator||caps.administrator)void refreshHiddenMembers();});
+  // Public attendance Presence is disabled; incident review remains in the staff moderation panel.
 
   function paint(){
     const allowed=sharedCanPost(current,user,profile,connected);
@@ -133,10 +134,10 @@ export function connectSharedChat(view){
       if(ticket!==authGeneration)return;user=data.session?.user || null;
       if(previousUser!==user?.id){stop();moderation?.setAccess({});}
       if(user?.email_confirmed_at){const response=await client.rpc('kipg_ensure_profile');if(response.error)throw response.error;if(ticket!==authGeneration)return;profile=response.data;}
-      if(user?.email_confirmed_at){const rights=await client.rpc('kipg_capabilities');if(ticket!==authGeneration)return;caps=rights.error?{}:rights.data||{};moderation?.setAccess(caps);roomMembers?.setStaff(Boolean(caps.moderator||caps.administrator));}else {caps={};moderation?.setAccess({});roomMembers?.setStaff(false);}
+      if(user?.email_confirmed_at){const rights=await client.rpc('kipg_capabilities');if(ticket!==authGeneration)return;caps=rights.error?{}:rights.data||{};moderation?.setAccess(caps);roomMembers?.setStaff(false);}else {caps={};moderation?.setAccess({});roomMembers?.setStaff(false);}
       failure='';
     }catch(error){if(ticket===authGeneration)failure='Your community profile could not connect. Reload or sign in again.';}
-    if(ticket===authGeneration){subscribe();paint();await restartPresence();}
+    if(ticket===authGeneration){subscribe();paint();}
   }
   async function refreshMessages(ticket){
     if(!client||!session||!current.chatWindow||ticket!==generation||refreshing)return;
@@ -174,12 +175,12 @@ export function connectSharedChat(view){
   });
   getCommunityClient().then(async service=>{
     client=service;client.auth.onAuthStateChange(()=>{setTimeout(()=>refreshProfile(),0);});
-    await refreshProfile();subscribe();paint();await startPresence();
+    await refreshProfile();subscribe();paint();
   }).catch(()=>{failure='Community service could not connect. Reload to try again.';paint();});
   let timer,messageTimer;
   function startPolling(){if(timer==null)timer=setInterval(()=>{refreshProfile();},15000);if(messageTimer==null)messageTimer=setInterval(()=>{if(current.chatWindow)refreshMessages(generation);},3000);}
   startPolling();
-  window.addEventListener('pagehide',()=>{clearInterval(timer);clearInterval(messageTimer);timer=null;messageTimer=null;stop();if(presenceChannel&&client){presenceChannel.untrack().catch(()=>{});client.removeChannel(presenceChannel).catch(()=>{});presenceChannel=null;}moderation?.setAccess({});});
+  window.addEventListener('pagehide',()=>{clearInterval(timer);clearInterval(messageTimer);timer=null;messageTimer=null;stop();moderation?.setAccess({});});
   window.addEventListener('pageshow',event=>{if(event.persisted){startPolling();refreshProfile().then(()=>{subscribe();paint();});}});
   return {update(state,next){
     const changed=next?.id!==session?.id||Boolean(state.chatWindow)!==Boolean(current.chatWindow);
