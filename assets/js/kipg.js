@@ -167,11 +167,12 @@ function installPrayerBorderTrace(){
     svg.setAttribute('aria-hidden','true');
     svg.setAttribute('focusable','false');
     const segments=[
-      ['kipg-prayer-gold-soft', '14 86', 8, .28],
-      ['kipg-prayer-gold-back', '10 90', 7, .35],
-      ['kipg-prayer-gold-mid', '6 94', 4.8, .65],
-      ['kipg-prayer-gold-front', '3.3 96.7', 2.3, .95],
-      ['kipg-prayer-white-glint', '1.4 98.6', 0, 1]
+      // A broad, softened gold tail; brighter progressively toward the white head.
+      ['kipg-prayer-gold-soft', '19 81', 9.5, .52],
+      ['kipg-prayer-gold-back', '14 86', 7, .65],
+      ['kipg-prayer-gold-mid', '9 91', 4.5, .9],
+      ['kipg-prayer-gold-front', '5.5 94.5', 2.1, 1],
+      ['kipg-prayer-white-glint', '2.4 97.6', 0, 1]
     ];
     const strokes=segments.map(([name,dashes,lag,opacity])=>{
       const path=document.createElementNS(namespace,'path');
