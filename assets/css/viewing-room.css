@@ -56,3 +56,8 @@
 .vr-room-rules ul{margin:.4rem 0;padding-left:1.3rem}
 .vr-room-rules li+li{margin-top:.25rem}
 @media(max-width:560px){.vr-chat{height:390px;max-height:75vh}.vr-chat.vr-chat--expanded{height:75vh}.vr-chat-heading{padding:.7rem}.vr-chat-body{padding:.55rem}.vr-chat-foot{padding:.6rem}.vr-screen-controls{padding:.7rem}}
+
+/* Sponsor recognition appears only outside an active program. */
+.vr-sponsor{display:flex;align-items:center;justify-content:space-between;gap:1.25rem;margin-top:1.25rem;padding:1.15rem 1.35rem;border:1px solid var(--ec-border-strong);border-radius:1rem;background:var(--ec-surface)}
+.vr-sponsor__copy{min-width:0}.vr-sponsor__eyebrow{color:var(--ec-metal-bright);font-size:.72rem;letter-spacing:.1em;font-weight:700;margin:0 0 .35rem}.vr-sponsor h2{font-size:1.2rem;margin:0 0 .3rem}.vr-sponsor__copy>p:last-child{margin:0;color:var(--ec-text-soft);font-size:.85rem}.vr-sponsor__placeholder{border:1px dashed var(--ec-border-strong);border-radius:.65rem;padding:1rem;min-width:220px;text-align:center;color:var(--ec-text-soft);font-size:.8rem}
+@media(max-width:640px){.vr-sponsor{flex-direction:column;align-items:stretch;padding:1rem}.vr-sponsor__placeholder{min-width:0}}
