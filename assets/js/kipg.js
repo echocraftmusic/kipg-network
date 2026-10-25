@@ -156,8 +156,59 @@ function mobileNavigation(){
   media.addEventListener('change',sync);sync();
   document.documentElement.classList.add('kipg-mobile-nav-ready');
 }
+/* The moving highlight must follow the real button path, not rotate a box.
+   Build an SVG with CSS-pixel coordinates and update its rounded path on resize. */
+function installPrayerBorderTrace(){
+  const namespace='http://www.w3.org/2000/svg';
+  document.querySelectorAll('.kipg-prayer-cta').forEach(button=>{
+    if(button.querySelector('.kipg-prayer-border-trace'))return;
+    const svg=document.createElementNS(namespace,'svg');
+    svg.classList.add('kipg-prayer-border-trace');
+    svg.setAttribute('aria-hidden','true');
+    svg.setAttribute('focusable','false');
+    const segments=[
+      ['kipg-prayer-gold-soft', '14 86', 8, .28],
+      ['kipg-prayer-gold-back', '10 90', 7, .35],
+      ['kipg-prayer-gold-mid', '6 94', 4.8, .65],
+      ['kipg-prayer-gold-front', '3.3 96.7', 2.3, .95],
+      ['kipg-prayer-white-glint', '1.4 98.6', 0, 1]
+    ];
+    const strokes=segments.map(([name,dashes,lag,opacity])=>{
+      const path=document.createElementNS(namespace,'path');
+      path.classList.add(name);
+      path.setAttribute('pathLength','100');
+      path.setAttribute('stroke-dasharray',dashes);
+      path.style.setProperty('--trace-start',String(lag));
+      path.style.setProperty('--trace-end',String(lag-100));
+      path.style.setProperty('--trace-opacity',String(opacity));
+      svg.append(path);
+      return path;
+    });
+    button.append(svg);
+    function resize(){
+      const {width:w,height:h}=button.getBoundingClientRect();
+      if(w<1||h<1)return;
+      const computed=getComputedStyle(button);
+      const radius=Math.min(parseFloat(computed.borderTopLeftRadius)||8,h/2-1,w/2-1);
+      const inset=1.35,r=Math.max(1,radius-inset),right=w-inset,bottom=h-inset;
+      // Standard clockwise SVG path: top edge, right edge, bottom, left edge.
+      const d='M '+(inset+r)+' '+inset+
+        ' H '+(right-r)+' A '+r+' '+r+' 0 0 1 '+right+' '+(inset+r)+
+        ' V '+(bottom-r)+' A '+r+' '+r+' 0 0 1 '+(right-r)+' '+bottom+
+        ' H '+(inset+r)+' A '+r+' '+r+' 0 0 1 '+inset+' '+(bottom-r)+
+        ' V '+(inset+r)+' A '+r+' '+r+' 0 0 1 '+(inset+r)+' '+inset+' Z';
+      svg.setAttribute('viewBox','0 0 '+w+' '+h);
+      for(const stroke of strokes)stroke.setAttribute('d',d);
+    }
+    resize();
+    if(typeof ResizeObserver==='function')new ResizeObserver(resize).observe(button);
+    else window.addEventListener('resize',resize,{passive:true});
+  });
+}
+
 function init(){
   mobileNavigation();
+  installPrayerBorderTrace();
   const header=document.querySelector('.kipg-header');
   if(header){
     const sizeHeader=()=>document.documentElement.style.setProperty('--kipg-header-height',`${header.getBoundingClientRect().height}px`);
