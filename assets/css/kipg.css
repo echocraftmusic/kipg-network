@@ -1208,18 +1208,32 @@ html { scroll-padding-top:calc(var(--kipg-header-height) + 90px); }
   animation:kipg-prayer-border-travel 26s linear infinite;
   stroke-dashoffset:var(--trace-start);
 }
+/* Each beam stays attached to the same SVG border path.
+   Layered drop shadows create a localized, noticeable glint without an orbiting box. */
 .kipg-prayer-border-trace .kipg-prayer-gold-soft{
-  stroke:#d49631;
-  stroke-width:4.2px;
-  filter:drop-shadow(0 0 1.4px rgba(219,159,48,.6));
+  stroke:#e1a336;
+  stroke-width:6px;
+  filter:drop-shadow(0 0 2px rgba(255,190,55,.95)) drop-shadow(0 0 4px rgba(255,172,35,.75));
 }
-.kipg-prayer-border-trace .kipg-prayer-gold-back{stroke:#be8021;stroke-width:2.2px}
-.kipg-prayer-border-trace .kipg-prayer-gold-mid{stroke:#edae39;stroke-width:2.4px}
-.kipg-prayer-border-trace .kipg-prayer-gold-front{stroke:#ffda75;stroke-width:2.4px}
+.kipg-prayer-border-trace .kipg-prayer-gold-back{
+  stroke:#d48c16;
+  stroke-width:3px;
+  filter:drop-shadow(0 0 2px rgba(226,147,24,.75));
+}
+.kipg-prayer-border-trace .kipg-prayer-gold-mid{
+  stroke:#ffbd40;
+  stroke-width:3.6px;
+  filter:drop-shadow(0 0 2.5px rgba(255,186,44,.95)) drop-shadow(0 0 6px rgba(241,161,24,.6));
+}
+.kipg-prayer-border-trace .kipg-prayer-gold-front{
+  stroke:#ffed9d;
+  stroke-width:4px;
+  filter:drop-shadow(0 0 2.5px rgba(255,228,118,1)) drop-shadow(0 0 6px rgba(255,182,43,.8));
+}
 .kipg-prayer-border-trace .kipg-prayer-white-glint{
-  stroke:#fffefd;
-  stroke-width:2.8px;
-  filter:drop-shadow(0 0 1.5px rgba(255,251,223,.9));
+  stroke:#ffffff;
+  stroke-width:4px;
+  filter:drop-shadow(0 0 2px rgba(255,255,255,1)) drop-shadow(0 0 5px rgba(255,247,185,1)) drop-shadow(0 0 8px rgba(252,191,71,.85));
 }
 @keyframes kipg-prayer-border-travel{
   0%{stroke-dashoffset:var(--trace-start);opacity:0}
