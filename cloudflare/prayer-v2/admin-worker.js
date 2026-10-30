@@ -75,10 +75,11 @@ export async function handleAdmin(request,env,fetcher=fetch){
     let body;try{body=await request.json();}catch{return json({error:'Invalid request'},400);}
     if(!body||!statuses.has(body.status))return json({error:'Invalid status'},400);
     const stamp=new Date().toISOString();
-    await env.PRAYER_DB.prepare("UPDATE prayer_requests SET status=?1,updated_at=?2,reviewed_at=COALESCE(reviewed_at,?2),closed_at=CASE WHEN ?1='closed' THEN ?2 ELSE NULL END WHERE id=?3")
-      .bind(body.status,stamp,id).run();
-    await env.PRAYER_DB.prepare('INSERT INTO prayer_audit (request_id,actor_email,action,created_at) VALUES (?1,?2,?3,?4)')
-      .bind(id,email,'status:'+body.status,stamp).run();
+    // D1 batch is atomic: a status update must not succeed without its audit record.
+    await env.PRAYER_DB.batch([
+      env.PRAYER_DB.prepare("UPDATE prayer_requests SET status=?1,updated_at=?2,reviewed_at=COALESCE(reviewed_at,?2),closed_at=CASE WHEN ?1='closed' THEN ?2 ELSE NULL END WHERE id=?3").bind(body.status,stamp,id),
+      env.PRAYER_DB.prepare('INSERT INTO prayer_audit (request_id,actor_email,action,created_at) VALUES (?1,?2,?3,?4)').bind(id,email,'status:'+body.status,stamp)
+    ]);
     return json({ok:true,status:body.status});
   }
   return json({error:'Method not supported'},405);
