@@ -1,4 +1,8 @@
-# KIPG Prayer 2.0 — Cloudflare-first staging plan
+# KIPG Prayer 2.0 — guarded deployment
+
+> **Verified 2026-10-30:** New intake and admin Workers, D1, R2, Turnstile, rate limiter, Access-protected admin hostname, and disabled cron notification workflow are configured in Cloudflare. Legacy worker's public hostname and its submission/delivery switches are disabled. Public form remains `enabled:false`. **Do not accept real prayer requests.** The encryption key is synthetic-test-only and has no validated owner-held recovery backup. Private sign-in, notification delivery, data retention, and end-to-end testing are still outstanding.
+>
+> For the current verified inventory and owner handoff, see [KIPG Phase 1 Operations](../../docs/KIPG-PHASE1-OPERATIONS.md). The planning notes below describe the original staged rollout; completed deployment steps must not be repeated blindly.
 
 **Do not enable public submission yet.** Website `data/prayer-config.json` remains `enabled:false`. Existing recovery Worker must also remain `SUBMISSIONS_ENABLED=false`. No Cloudflare secrets belong in GitHub.
 
@@ -11,7 +15,7 @@
 - No public prayer wall and no visitor search/list endpoints. Notifications must omit personal content.
 - Existing Supabase delivery/recovery code is legacy and remains **disabled**. Do not enable DELIVERY_ENABLED until a properly reviewed Cloudflare-only delivery process replaces it.
 
-## Setup still required
+## Original deployment plan (some steps now complete)
 1. Create a private D1 database and run `schema.sql`; configure Worker D1 binding with name `PRAYER_DB`.
 2. Use existing private R2 bucket `kipg-prayer-recovery` with `PRAYER_RECOVERY` binding.
 3. Provision Turnstile and IP rate limiting; bind `TURNSTILE_SECRET_KEY`, `PRAYER_RATE_LIMITER`, `RECOVERY_ENCRYPTION_KEY` securely.
@@ -21,15 +25,15 @@
 7. Only enable site submission and Worker when both are verified. A low-traffic website still deserves full privacy controls.
 
 ## Pilot conventions
-The first-name-or-initial and email fields are still required by the current form; revisit anonymous prayer support before launch. Keep this feature free of Supabase dependencies.
+First name or initial remains required. Email is optional for no-follow-up requests; email is required for follow-up. Keep this feature free of Supabase dependencies.
 
-## Implemented in GitHub (not yet deployed)
+## Implemented in GitHub (now deployed under disabled switches)
 - `worker.js`: public intake with Turnstile, rate limits, R2 encryption, D1 request metadata, and generic Resend notifications retried by cron. Default state remains OFF.
 - `admin-worker.js`: standalone Cloudflare Access-protected private dashboard; reads/decrypts encrypted R2 records and updates status in D1. Uses verified Access RS256 JWT + explicit `PRAYER_ADMIN_EMAILS` allowlist. The admin URL is **not** an ordinary static GitHub Pages route.
 - `schema.sql`: includes status queue, notification receipt timestamp, and staff audit records.
 - `worker.test.mjs`: unit tests; run `node --test cloudflare/prayer-v2/worker.test.mjs`.
 
-## Cloudflare operator deployment checklist (must complete before enabling)
+## Release checklist (verify live setup, complete outstanding safeguards)
 1. Create a **private** D1 database (suggested `kipg-prayer`) through Cloudflare Workers & Pages -> D1. Execute `schema.sql` in its console. Supply its binding as `PRAYER_DB` to **both** new Workers.
 2. Bind existing private R2 bucket `kipg-prayer-recovery` as `PRAYER_RECOVERY` to both new Workers. Back up `RECOVERY_ENCRYPTION_KEY` securely and bind exactly the same key to both Workers; avoid key rotation without re-encrypting existing objects.
 3. Deploy the public intake Worker separately from the admin Worker; connect Turnstile secret `TURNSTILE_SECRET_KEY`, rate limiter `PRAYER_RATE_LIMITER`, `SUBMISSIONS_ENABLED=false`, and the existing controlled origin policy. The website `data/prayer-config.json` must remain `enabled:false`.
