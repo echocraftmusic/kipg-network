@@ -28,7 +28,7 @@ const url='https://prayer-admin.kipgnetwork.com/api/requests';
 const req=async(claims,options={})=>new Request(options.url||url,{method:options.method||'GET',headers:{'Cf-Access-Jwt-Assertion':await jwt(claims),...(options.headers||{})},body:options.body});
 test('staff dashboard validates signed Access JWT and explicit email allowlist',async()=>{
  const env=setup();const response=await handleAdmin(await req({}),env,fetchCerts);
- assert.equal(response.status,200);assert.deepEqual(await response.json(),{requests:[]});
+ assert.equal(response.status,200);assert.deepEqual(await response.json(),{requests:[],testMode:false});
  for(const bad of [{email:'other@example.com'},{aud:['wrong']},{exp:1},{iss:'https://evil.example'}]){
   const r=await handleAdmin(await req(bad),env,fetchCerts);assert.equal(r.status,403);
  }
@@ -62,7 +62,7 @@ test('dashboard CSP permits only same-origin queue API access',async()=>{
  assert.equal((await response.text()).includes('/api/requests'),true);
  const queue=await handleAdmin(await req({}),env,fetchCerts);
  assert.equal(queue.status,200);
- assert.deepEqual(await queue.json(),{requests:[]});
+ assert.deepEqual(await queue.json(),{requests:[],testMode:false});
 });
 
 function setupSyntheticStore(){
