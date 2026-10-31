@@ -176,8 +176,38 @@ export async function handleAdmin(request,env,fetcher=fetch){
 }
 const DASHBOARD=String.raw`<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>KIPG Prayer Ministry — Private</title><style>
+<title>KIPG Prayer Ministry — Private</title>
+<script>
+try{if(localStorage.getItem('kipg-prayer-admin-theme')==='light')document.documentElement.dataset.theme='light';}catch{}
+</script><style>
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#0c0b0a;color:#eee7da}
+.dashboard-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;border-bottom:1px solid #765a2c;padding-bottom:1rem}
+.dashboard-header p:last-child{margin-bottom:0}
+.dashboard-header h1{margin-top:.45rem}
+.dashboard-header .header-copy{flex:1 1 420px;min-width:0}
+.dashboard-header #theme-toggle{flex:none;margin-top:.5rem;min-width:144px;white-space:nowrap}
+:root[data-theme="light"]{color-scheme:light;background:#f6f3ec;color:#302820}
+:root[data-theme="light"] .dashboard-header{border-bottom-color:#b79762}
+:root[data-theme="light"] .panel{background:#fffdfa;border-color:#b99b67;box-shadow:0 3px 14px rgba(80,53,20,.055)}
+:root[data-theme="light"] button,:root[data-theme="light"] select,:root[data-theme="light"] input,:root[data-theme="light"] textarea{background:#f9efdd;border-color:#917141;color:#352716}
+:root[data-theme="light"] button:hover{background:#eedbb7}
+:root[data-theme="light"] button:focus-visible,:root[data-theme="light"] select:focus-visible,:root[data-theme="light"] input:focus-visible,:root[data-theme="light"] textarea:focus-visible{outline-color:#895a16}
+:root[data-theme="light"] #queue-count,:root[data-theme="light"] .hint{color:#66502e}
+:root[data-theme="light"] #requests .request-row{background:#fffaf2;border-color:#c3ad87}
+:root[data-theme="light"] #requests .request-row:hover{background:#f6e9d2;border-color:#a67a32}
+:root[data-theme="light"] #requests .request-row[aria-pressed="true"]{background:#f4e4c4;border-color:#9e742b;box-shadow:inset 3px 0 0 #a57224}
+:root[data-theme="light"] .row-status{color:#62410e;border-color:#a9874b;background:#f4e5c9}
+:root[data-theme="light"] .row-follow{color:#69512e}
+:root[data-theme="light"] #details .prayer-content{background:#f9f0df;border-left-color:#aa7e34}
+:root[data-theme="light"] #actions{border-top-color:#ddcba9}
+:root[data-theme="light"] #error{color:#8d370c}
+:root[data-theme="light"] #test-panel{border-color:#bc9d60;background:linear-gradient(135deg,#fff8e9,#fffdfa 65%)}
+:root[data-theme="light"] #test-panel input[type="text"],:root[data-theme="light"] #test-panel textarea{background:#fffdfa}
+:root[data-theme="light"] .primary{background:linear-gradient(115deg,#bc8838,#ecc975);color:#211608;border-color:#986b28}
+:root[data-theme="light"] .primary:hover{background:#e5bf6b}
+:root[data-theme="light"] .warning{color:#80440e}
+@media(max-width:650px){.dashboard-header #theme-toggle{margin-top:0}.dashboard-header .header-copy{flex-basis:100%}}
+
 body{margin:0 auto;max-width:1080px;padding:1.5rem}
 header{border-bottom:1px solid #765a2c;padding-bottom:1rem}
 h1{font-family:Georgia,serif}
@@ -221,8 +251,11 @@ main{display:grid;grid-template-columns:minmax(0,1fr);gap:1.25rem;margin-top:1.5
 [hidden]{display:none!important}
 
 </style></head><body>
-<header><p>KIPG NETWORK · AUTHORIZED MINISTRY USE</p><h1>Prayer Ministry</h1>
-<p>Confidential requests. Never share request details outside approved ministry access.</p></header>
+<header class="dashboard-header">
+<div class="header-copy"><p>KIPG NETWORK · AUTHORIZED MINISTRY USE</p><h1>Prayer Ministry</h1>
+<p>Confidential requests. Never share request details outside approved ministry access.</p></div>
+<button id="theme-toggle" type="button" aria-label="Switch to light mode" aria-pressed="false">☀ Light mode</button>
+</header>
 <p id="error" role="status" aria-live="polite"></p>
 <main>
 <section class="panel" aria-labelledby="queue-heading">
@@ -248,6 +281,17 @@ main{display:grid;grid-template-columns:minmax(0,1fr);gap:1.25rem;margin-top:1.5
 </section>
 <script>
 const byId=id=>document.getElementById(id);
+const themeButton=byId('theme-toggle');
+function applyTheme(theme,save=false){
+ const light=theme==='light';
+ document.documentElement.dataset.theme=light?'light':'dark';
+ themeButton.textContent=light?'☾ Dark mode':'☀ Light mode';
+ themeButton.setAttribute('aria-label',light?'Switch to dark mode':'Switch to light mode');
+ themeButton.setAttribute('aria-pressed',String(light));
+ if(save)try{localStorage.setItem('kipg-prayer-admin-theme',light?'light':'dark');}catch{}
+}
+applyTheme(document.documentElement.dataset.theme==='light'?'light':'dark');
+themeButton.addEventListener('click',()=>applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light',true));
 let selected=null,testMode=false;
 const status=message=>byId('error').textContent=message;
 async function api(path,options){
