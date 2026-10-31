@@ -4,7 +4,7 @@ import {capture,notifyPending} from './worker.js';
 import {handleAdmin} from './admin-worker.js';
 
 const id='fd21b6ad-c145-4ed0-b747-7d4de0c4a803';
-const base={submissionId:id,name:'Anonymous',email:'person@example.com',prayerRequest:'Please pray for hope and encouragement.',contactRequested:false,website:'',startedAt:Date.now()-5000,turnstileToken:'token'};
+const base={submissionId:id,name:'Anonymous',email:'person@example.com',prayerRequest:'Please pray for hope and encouragement.',contactRequested:false,contactMethod:'none',phone:'',smsConsent:false,website:'',startedAt:Date.now()-5000,turnstileToken:'token'};
 function setup(){
   const objects=new Map(),rows=new Map();
   const R2={
@@ -38,7 +38,7 @@ test('notifications are disabled by default and contain no prayer details when e
 test('no-follow-up requests may omit email; follow-up requires verified email syntax',async()=>{
  const first=setup(),noEmail={...base,email:'',contactRequested:false};
  assert.equal((await capture(request(noEmail),first.env,siteverify)).status,200);
- const second=setup(),needsEmail={...base,email:'',contactRequested:true};
+ const second=setup(),needsEmail={...base,email:'',contactRequested:true,contactMethod:'email'};
  assert.equal((await capture(request(needsEmail),second.env,siteverify)).status,400);
  assert.equal(second.objects.size,0);
 });
@@ -49,4 +49,43 @@ test('intake refuses public submissions when encryption recovery is not approved
   assert.equal(response.status,503);
   assert.equal(objects.size,0);
   assert.equal(rows.size,0);
+});
+
+test('email follow-up accepts a valid email and rejects an unusable address',async()=>{
+ const ok=setup(),payload={...base,contactRequested:true,contactMethod:'email',email:'person@example.com'};
+ assert.equal((await capture(request(payload),ok.env,siteverify)).status,200);
+ const bad=setup(),invalid={...payload,email:'not-an-address'};
+ assert.equal((await capture(request(invalid),bad.env,siteverify)).status,400);
+ assert.equal(bad.objects.size,0);
+});
+test('phone-call follow-up requires a valid number and never requires an email',async()=>{
+ const ok=setup(),payload={...base,contactRequested:true,contactMethod:'phone',email:'',phone:'(407) 555-0132'};
+ assert.equal((await capture(request(payload),ok.env,siteverify)).status,200);
+ const invalid=setup();
+ assert.equal((await capture(request({...payload,phone:'123'}),invalid.env,siteverify)).status,400);
+ assert.equal(invalid.objects.size,0);
+});
+test('text follow-up requires explicit consent and a valid phone number',async()=>{
+ const payload={...base,contactRequested:true,contactMethod:'text',email:'',phone:'407-555-0145',smsConsent:true};
+ const yes=setup();
+ assert.equal((await capture(request(payload),yes.env,siteverify)).status,200);
+ const no=setup();
+ assert.equal((await capture(request({...payload,smsConsent:false}),no.env,siteverify)).status,400);
+ const wrongContact=setup();
+ assert.equal((await capture(request({...payload,phone:'911'}),wrongContact.env,siteverify)).status,400);
+});
+test('intake rejects contradictory contact or consent choices',async()=>{
+ const cases=[
+  {...base,contactRequested:false,contactMethod:'text',phone:'4075550145',smsConsent:true},
+  {...base,contactRequested:false,contactMethod:'none',phone:'4075550145'},
+  {...base,contactRequested:true,contactMethod:'email',phone:'4075550145',smsConsent:false},
+  {...base,contactRequested:true,contactMethod:'phone',email:'',phone:'4075550145',smsConsent:true},
+  {...base,contactRequested:true,contactMethod:'text',email:'person@example.com',phone:'4075550145',smsConsent:true},
+  {...base,contactRequested:true,contactMethod:'email',smsConsent:true}
+ ];
+ for(const payload of cases){
+  const {env,objects}=setup();
+  assert.equal((await capture(request(payload),env,siteverify)).status,400);
+  assert.equal(objects.size,0);
+ }
 });
