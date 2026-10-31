@@ -110,7 +110,7 @@ export async function notifyPending(env,requestFetch=fetch){
  if(env.NOTIFICATIONS_ENABLED!=='true')return;
  if(!env.PRAYER_DB||!env.RESEND_API_KEY||!env.PRAYER_NOTIFICATION_FROM||!env.PRAYER_NOTIFICATION_TO)throw Error('Notification service not configured');
  if(env.PRAYER_NOTIFICATION_TO.trim().toLowerCase()!=='prayers@kipgnetwork.com')throw Error('Unexpected prayer mailbox');
- const rows=await env.PRAYER_DB.prepare('SELECT id FROM prayer_requests WHERE notification_sent_at IS NULL AND object_key NOT LIKE 'test/%' ORDER BY received_at ASC LIMIT 20').all();
+ const rows=await env.PRAYER_DB.prepare("SELECT id FROM prayer_requests WHERE notification_sent_at IS NULL AND object_key NOT LIKE 'test/%' ORDER BY received_at ASC LIMIT 20").all();
  for(const row of rows.results||[]){
   try{
    const response=await requestFetch('https://api.resend.com/emails',{
