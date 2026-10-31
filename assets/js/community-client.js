@@ -13,5 +13,8 @@ export function getCommunityClient(){
 export function communityError(error){
   if(error?.code==='over_email_send_rate_limit'||error?.status===429)return 'Please wait a little before requesting another sign-in email.';
   if(error?.code==='email_address_not_authorized')return 'Email delivery is still being set up for community members.';
-  return error?.message || 'We could not complete that request. Please try again.';
+  const message=String(error?.message||'');
+  if(/respectful username|reserved or blocked|username.*blocked/i.test(message))return 'That username isn’t available. Please choose another name that follows KIPG Community guidelines.';
+  if(/already taken/i.test(message))return 'That username is already taken. Please choose another one.';
+  return message || 'We could not complete that request. Please try again.';
 }
