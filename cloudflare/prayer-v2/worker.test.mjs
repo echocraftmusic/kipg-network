@@ -1,4 +1,5 @@
 import {test} from 'node:test';
+import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {capture,notifyPending} from './worker.js';
 import {handleAdmin} from './admin-worker.js';
@@ -19,7 +20,7 @@ function setup(){
       async all(){if(sql.startsWith('SELECT id FROM prayer_requests WHERE notification_sent_at'))return {results:[...rows.values()].filter(x=>!x.notification_sent_at)};return {results:[]};}
     };
   }};
-  return {objects,rows,env:{PRAYER_RECOVERY:R2,PRAYER_DB:D1,RECOVERY_ENCRYPTION_KEY:btoa('k'.repeat(32)),SUBMISSIONS_ENABLED:'true',PRODUCTION_KEY_READY:'true',TURNSTILE_SECRET_KEY:'test',PRAYER_RATE_LIMITER:{async limit(){return {success:true}}}}};
+  return {objects,rows,env:{PRAYER_RECOVERY:R2,PRAYER_DB:D1,RECOVERY_ENCRYPTION_KEY:btoa('k'.repeat(32)),PRODUCTION_KEY_FINGERPRINT:createHash('sha256').update('k'.repeat(32)).digest('hex'),SUBMISSIONS_ENABLED:'true',PRODUCTION_KEY_READY:'true',TURNSTILE_SECRET_KEY:'test',PRAYER_RATE_LIMITER:{async limit(){return {success:true}}}}};
 }
 function request(body=base){return new Request('https://test.invalid/submit',{method:'POST',headers:{'Origin':'https://kipgnetwork.com','CF-Connecting-IP':'192.0.2.1'},body:JSON.stringify(body)})}
 const siteverify=async()=>Response.json({success:true,hostname:'kipgnetwork.com',action:'prayer_submit',cdata:id});
@@ -88,4 +89,20 @@ test('intake rejects contradictory contact or consent choices',async()=>{
   assert.equal((await capture(request(payload),env,siteverify)).status,400);
   assert.equal(objects.size,0);
  }
+});
+
+test('production encryption fingerprint prevents launch with missing or incorrect recovery key',async()=>{
+ for(const fingerprint of ['', '0'.repeat(64), 'invalid']){
+  const {env,objects,rows}=setup();
+  env.PRODUCTION_KEY_FINGERPRINT=fingerprint;
+  const response=await capture(request(),env,siteverify);
+  assert.equal(response.status,503,'Should not accept with fingerprint '+fingerprint);
+  assert.equal(objects.size,0);assert.equal(rows.size,0);
+  const availability=await capture(new Request('https://test.invalid/'),env,siteverify);
+  assert.equal((await availability.json()).submissionsEnabled,false);
+ }
+ const {env,objects}=setup();
+ env.RECOVERY_ENCRYPTION_KEY=btoa('d'.repeat(32));
+ assert.equal((await capture(request(),env,siteverify)).status,503,'A valid but different secret must not match the backup');
+ assert.equal(objects.size,0);
 });
