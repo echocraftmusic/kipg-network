@@ -50,8 +50,13 @@ function valid(){
   const request=form.elements.prayer_request.value.trim();
   const contact=form.elements.contact_requested.value;
   if(name.length<1||request.length<5||!['yes','no'].includes(contact))return false;
-  if(contact==='yes'&&(!email||!form.elements.email.checkValidity()))return false;
-  if(email&&!form.elements.email.checkValidity())return false;
+  if(contact==='yes'){
+    const method=form.elements.contact_method.value;
+    if(!['email','text','phone'].includes(method))return false;
+    if(method==='email'&&(!email||!form.elements.email.checkValidity()))return false;
+    if(method!=='email'&&!validPhone(form.elements.phone.value))return false;
+    if(method==='text'&&!form.elements.sms_consent.checked)return false;
+  }
   return true;
 }
 async function loadConfig(){
@@ -73,20 +78,42 @@ async function loadConfig(){
   }
 }
 textarea?.addEventListener('input',()=>{if(count)count.textContent=String(textarea.value.length);});
-function syncContactRequirement(){
+// Require only the contact information the visitor opts to share.
+function validPhone(value){
+ if(typeof value!=='string'||!/^[+]?[0-9(). -]{10,24}$/.test(value.trim()))return false;
+ const digits=value.replace(/[^0-9]/g,'');
+ return digits.length>=10&&digits.length<=15;
+}
+function syncContactFields(){
  if(!form)return;
  const needed=form.elements.contact_requested.value==='yes';
- form.elements.email.required=needed;
- const label=document.querySelector('[data-email-requirement]');
- if(label)label.textContent=needed?'(required for follow-up)':'(optional if no follow-up)';
+ const method=needed?form.elements.contact_method.value:'';
+ const emailNeeded=needed&&method==='email';
+ const phoneNeeded=needed&&(method==='phone'||method==='text');
+ const smsNeeded=needed&&method==='text';
+ const details=document.querySelector('[data-prayer-contact-details]');
+ const emailField=document.querySelector('[data-prayer-email-field]');
+ const phoneField=document.querySelector('[data-prayer-phone-field]');
+ const consentField=document.querySelector('[data-prayer-sms-consent]');
+ if(details)details.hidden=!needed;
+ if(emailField)emailField.hidden=!emailNeeded;
+ if(phoneField)phoneField.hidden=!phoneNeeded;
+ if(consentField)consentField.hidden=!smsNeeded;
+ form?.querySelectorAll?.('[name="contact_method"]')?.forEach(radio=>{radio.required=needed;radio.disabled=!needed;});
+ form.elements.email.required=emailNeeded;
+ form.elements.email.disabled=!emailNeeded;
+ form.elements.phone.required=phoneNeeded;
+ form.elements.phone.disabled=!phoneNeeded;
+ form.elements.sms_consent.required=smsNeeded;
+ form.elements.sms_consent.disabled=!smsNeeded;
 }
-form?.querySelectorAll?.('[name="contact_requested"]')?.forEach(radio=>radio.addEventListener('change',syncContactRequirement));
-syncContactRequirement();
+form?.querySelectorAll?.('[name="contact_requested"],[name="contact_method"]')?.forEach(radio=>radio.addEventListener('change',syncContactFields));
+syncContactFields();
 another?.addEventListener('click',()=>{
   success.hidden=true;
   form.hidden=false;
   form.reset();
-  syncContactRequirement();
+  syncContactFields();
   if(count)count.textContent='0';
   startedAt=Date.now();
   submissionId=crypto.randomUUID();lastBody='';resetSecurity();
@@ -105,13 +132,16 @@ form?.addEventListener('submit',async event=>{
   }
   const body={
     name:form.elements.name.value.trim(),
-    email:form.elements.email.value.trim(),
+    email:form.elements.contact_requested.value==='yes'&&form.elements.contact_method.value==='email'?form.elements.email.value.trim():'',
+    phone:form.elements.contact_requested.value==='yes'&&form.elements.contact_method.value!=='email'?form.elements.phone.value.trim():'',
     prayerRequest:form.elements.prayer_request.value.trim(),
     contactRequested:form.elements.contact_requested.value==='yes',
+    contactMethod:form.elements.contact_requested.value==='yes'?form.elements.contact_method.value:'none',
+    smsConsent:form.elements.contact_requested.value==='yes'&&form.elements.contact_method.value==='text'&&form.elements.sms_consent.checked,
     website:form.elements.website.value,
     startedAt
   };
-  const fingerprint=JSON.stringify({name:body.name,email:body.email,prayerRequest:body.prayerRequest,contactRequested:body.contactRequested});
+  const fingerprint=JSON.stringify({name:body.name,email:body.email,phone:body.phone,prayerRequest:body.prayerRequest,contactRequested:body.contactRequested,contactMethod:body.contactMethod,smsConsent:body.smsConsent});
   if(lastBody&&lastBody!==fingerprint){
     submissionId=crypto.randomUUID();lastBody=fingerprint;resetSecurity();setBusy(false);
     setStatus('Your request changed. Please complete the new security check before sending.','ready');return;
