@@ -58,8 +58,8 @@ test('dashboard CSP permits only same-origin queue API access',async()=>{
  const csp=response.headers.get('Content-Security-Policy');
  assert.match(csp,/default-src 'none'/);
  assert.match(csp,/connect-src 'self'/);
- assert.doesNotMatch(csp,/connect-src \\*/);
- assert.match(await response.text(),/api\\/requests/);
+ assert.equal(csp.includes("connect-src *"),false);
+ assert.equal((await response.text()).includes('/api/requests'),true);
  const queue=await handleAdmin(await req({}),env,fetchCerts);
  assert.equal(queue.status,200);
  assert.deepEqual(await queue.json(),{requests:[]});
