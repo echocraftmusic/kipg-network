@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {webcrypto} from 'node:crypto';
+import {webcrypto,createHash} from 'node:crypto';
 import {runInNewContext} from 'node:vm';
 import {handleAdmin} from './admin-worker.js';
 
@@ -246,4 +246,18 @@ test('authorized reviewer can read encrypted phone and text consent; queue keeps
  const html=await dashboard.text();
  assert.equal(html.includes('Preferred contact'),true);
  assert.equal(html.includes('Text message permission'),true);
+});
+
+test('key fingerprint is readable only by authorized ministry staff and never reveals the raw secret',async()=>{
+ const env=setup(),url='https://prayer-admin.kipgnetwork.com/api/key-fingerprint';
+ const allowed=await handleAdmin(await req({}, {url}),env,fetchCerts);
+ assert.equal(allowed.status,200);
+ const response=await allowed.json();
+ assert.equal(response.fingerprint,createHash('sha256').update('x'.repeat(32)).digest('hex'));
+ assert.equal(Object.keys(response).length,1);
+ assert.equal(allowed.headers.get('cache-control'),'no-store');
+ const rejected=await handleAdmin(await req({email:'outsider@example.com'}, {url}),env,fetchCerts);
+ assert.equal(rejected.status,403);
+ const unsigned=await handleAdmin(new Request(url),env,fetchCerts);
+ assert.equal(unsigned.status,403);
 });
