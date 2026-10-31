@@ -186,13 +186,26 @@ button,select,input,textarea{background:#241c11;border:1px solid #967135;border-
 button{cursor:pointer}
 button:hover{background:#403019}
 button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #eac074;outline-offset:2px}
-main{display:grid;grid-template-columns:minmax(230px,1fr) 2fr;gap:1rem;margin-top:1.5rem}
-.panel{border:1px solid #785d31;border-radius:12px;padding:1rem;min-width:0}
-#requests{display:grid;gap:.5rem;margin-top:.5rem}
-#requests button{text-align:left;overflow-wrap:anywhere}
-#details{overflow-wrap:anywhere;line-height:1.6}
+main{display:grid;grid-template-columns:minmax(0,1fr);gap:1.25rem;margin-top:1.5rem}
+.panel{border:1px solid #785d31;border-radius:12px;padding:1.2rem;min-width:0}
+.panel-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.7rem}
+.panel-head h2{margin:0}
+#queue-count{font-size:.88rem;color:#d7c39e}
+#requests{display:grid;gap:.5rem;margin-top:1rem;max-height:340px;min-height:72px;overflow-y:auto;overscroll-behavior:contain;padding-right:.25rem;align-content:start}
+#requests .request-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem 1rem;width:100%;min-height:55px;text-align:left;padding:.8rem 1rem;box-sizing:border-box;background:#17130d;border:1px solid #5c482a}
+#requests .request-row:hover{background:#2f2413;border-color:#d7aa54}
+#requests .request-row[aria-pressed="true"]{background:#352710;border-color:#e0b35e;box-shadow:inset 3px 0 0 #e9bd6a}
+.row-date{font-weight:600;overflow-wrap:anywhere}
+.row-meta{display:flex;align-items:center;flex-wrap:wrap;gap:.5rem}
+.row-status{font-size:.85rem;color:#ffe2ab;border:1px solid #8b672e;border-radius:999px;padding:.2rem .65rem}
+.row-follow{font-size:.84rem;color:#ddc49c}
+#details{overflow-wrap:anywhere;line-height:1.7;min-height:135px}
 #details p{white-space:pre-wrap}
-#actions{margin-top:1rem}
+#details .prayer-content{margin:1rem 0;padding:1rem 1.2rem;border-left:3px solid #d6a653;background:#17120c;border-radius:0 8px 8px 0;max-width:95ch;line-height:1.8}
+#actions{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin-top:1rem;padding-top:1rem;border-top:1px solid #483920}
+#actions label{font-weight:600}
+@media(max-width:650px){body{padding:1rem}.panel{padding:1rem}#requests{max-height:325px}.request-row{align-items:flex-start}#actions>*{max-width:100%}}
+
 #error{color:#ffcc9c;min-height:1.2rem}
 #test-panel{margin-top:1rem;border-color:#ab843d;background:linear-gradient(130deg,rgba(180,118,23,.12),transparent 65%)}
 #test-panel label{display:block;margin:.75rem 0 .25rem;font-weight:600}
@@ -206,14 +219,19 @@ main{display:grid;grid-template-columns:minmax(230px,1fr) 2fr;gap:1rem;margin-to
 .primary:hover{background:#efc770}
 .warning{color:#ffe1b2}
 [hidden]{display:none!important}
-@media(max-width:650px){main{grid-template-columns:1fr}body{padding:1rem}}
+
 </style></head><body>
 <header><p>KIPG NETWORK · AUTHORIZED MINISTRY USE</p><h1>Prayer Ministry</h1>
 <p>Confidential requests. Never share request details outside approved ministry access.</p></header>
 <p id="error" role="status" aria-live="polite"></p>
 <main>
-<section class="panel"><h2>Prayer queue</h2><button id="reload" type="button">Refresh</button><div id="requests"></div></section>
-<section class="panel"><h2>Request details</h2><div id="details">Select a prayer request.</div>
+<section class="panel" aria-labelledby="queue-heading">
+<div class="panel-head"><h2 id="queue-heading">Prayer queue</h2><button id="reload" type="button">Refresh</button></div>
+<p id="queue-count" role="status" aria-live="polite">Loading requests…</p>
+<div id="requests" aria-label="Prayer requests"></div>
+</section>
+<section class="panel" aria-labelledby="detail-heading">
+<h2 id="detail-heading">Request details</h2><div id="details">Select a prayer request above to read its details.</div>
 <div id="actions" hidden><label for="status">Prayer status</label>
 <select id="status"><option value="pending">New / Pending</option><option value="reviewing">Being reviewed</option><option value="prayed">Prayed for</option><option value="follow_up">Follow-up needed</option><option value="closed">Closed</option></select>
 <button id="save" type="button">Save status</button> <button id="delete-test" type="button" hidden>Delete TEST record</button>
