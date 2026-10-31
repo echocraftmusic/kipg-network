@@ -8,7 +8,8 @@ test('Cloudflare Community auth Worker remains fail-closed in staging',async()=>
   const source=await read('cloudflare/community-v2/worker.js');
   assert.match(source,/EMAIL_ENABLED!=='true'/);
   assert.match(source,/TEST_MODE==='true'/);
-  assert.match(source,/TEST_ACCESS_KEY/);
+  assert.match(source,/TEST_ALLOWED_EMAIL/);
+  assert.match(source,/Cf-Access-Authenticated-User-Email/);
   assert.match(source,/__Host-kipg_session/);
   assert.match(source,/HttpOnly; Secure; SameSite=Lax/);
   assert.match(source,/token_hash/);
