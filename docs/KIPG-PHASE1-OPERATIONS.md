@@ -6,7 +6,7 @@
 - D1 database `kipg-prayer` exists, including `prayer_requests` and `prayer_audit`.
 - Private R2 bucket `kipg-prayer-recovery` exists, with public bucket domain disabled.
 - Worker `kipg-prayer-intake` is deployed and bound to D1 and R2, with Turnstile, rate limiter (5 per 60 s per Cloudflare location/IP), a test-only AES-256-GCM key, and a five-minute cron.
-- Public intake settings `SUBMISSIONS_ENABLED=false` and `NOTIFICATIONS_ENABLED=false`. The website's `data/prayer-config.json` also remains `enabled:false` and points to the *new* Worker.
+- Public intake settings `SUBMISSIONS_ENABLED=false`, `PRODUCTION_KEY_READY=false` and `NOTIFICATIONS_ENABLED=false`. The website's `data/prayer-config.json` also remains `enabled:false` and points to the *new* Worker.
 - Worker `kipg-prayer-admin` is deployed and bound to D1/R2, with a matching **test-only** encryption key and Cloudflare Access JWT verification.
 - Cloudflare Access protects `prayer-admin.kipgnetwork.com`; current access emails are `troy.saha@gmail.com` and `george@kipgnetwork.com` (the second address must be verified before testing). The admin Worker's public `workers.dev` hostname remains disabled.
 - Previous Worker `kipg-prayer-recovery`: `workers.dev` disabled; both legacy `SUBMISSIONS_ENABLED=false` and `DELIVERY_ENABLED=false`; existing secrets preserved. No website should target it.
@@ -39,3 +39,6 @@
 - Synthetic records are tagged `TEST` in the queue, support the standard status and audit flow, and can be deleted from both D1 and R2 using the explicit private delete action. Test deletion cannot target ordinary prayer records.
 - Test entries are marked with `notification_sent_at` to prevent email queuing; the intake Worker also excludes `test/%` objects from future notification retries. Email and public submission switches remain off.
 - **Before accepting real requests:** remove all test records; verify D1 and R2 cleanup; set `PRAYER_TEST_MODE=false` (or remove the binding), replace and securely back up the temporary test-only encryption key on both Workers, verify authorized sign-in, complete private end-to-end tests, and configure ministry retention/alerts. The testing key must not be used to encrypt real people's prayers.
+
+## Production readiness two-switch safeguard (2026-10-30)
+The intake Worker requires **both** `SUBMISSIONS_ENABLED=true` and `PRODUCTION_KEY_READY=true` to accept requests. The readiness binding must remain `false` while the key is only a temporary rehearsal key or its owner-held recovery copy is missing. A public form enablement also remains a separate final step. Changing any one switch alone must not launch intake.
