@@ -19,7 +19,7 @@ function setup(){
       async all(){if(sql.startsWith('SELECT id FROM prayer_requests WHERE notification_sent_at'))return {results:[...rows.values()].filter(x=>!x.notification_sent_at)};return {results:[]};}
     };
   }};
-  return {objects,rows,env:{PRAYER_RECOVERY:R2,PRAYER_DB:D1,RECOVERY_ENCRYPTION_KEY:btoa('k'.repeat(32)),SUBMISSIONS_ENABLED:'true',TURNSTILE_SECRET_KEY:'test',PRAYER_RATE_LIMITER:{async limit(){return {success:true}}}}};
+  return {objects,rows,env:{PRAYER_RECOVERY:R2,PRAYER_DB:D1,RECOVERY_ENCRYPTION_KEY:btoa('k'.repeat(32)),SUBMISSIONS_ENABLED:'true',PRODUCTION_KEY_READY:'true',TURNSTILE_SECRET_KEY:'test',PRAYER_RATE_LIMITER:{async limit(){return {success:true}}}}};
 }
 function request(body=base){return new Request('https://test.invalid/submit',{method:'POST',headers:{'Origin':'https://kipgnetwork.com','CF-Connecting-IP':'192.0.2.1'},body:JSON.stringify(body)})}
 const siteverify=async()=>Response.json({success:true,hostname:'kipgnetwork.com',action:'prayer_submit',cdata:id});
@@ -41,4 +41,12 @@ test('no-follow-up requests may omit email; follow-up requires verified email sy
  const second=setup(),needsEmail={...base,email:'',contactRequested:true};
  assert.equal((await capture(request(needsEmail),second.env,siteverify)).status,400);
  assert.equal(second.objects.size,0);
+});
+
+test('intake refuses public submissions when encryption recovery is not approved',async()=>{
+  const {env,objects,rows}=setup();env.PRODUCTION_KEY_READY='false';
+  const response=await capture(request(),env,siteverify);
+  assert.equal(response.status,503);
+  assert.equal(objects.size,0);
+  assert.equal(rows.size,0);
 });
