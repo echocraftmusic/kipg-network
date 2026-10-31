@@ -8,10 +8,10 @@
   <title>Prayer &amp; Encouragement | KIPG Network</title>
   <link rel="icon" href="../assets/images/kipg-network-logo.png">
   <link rel="stylesheet" href="../core/css/framework.css">
-  <link rel="stylesheet" href="../assets/css/kipg.css?v=20261025-prayer-trace-v5-bright">
+  <link rel="stylesheet" href="../assets/css/kipg.css?v=20261030-contact-preference-v1">
   <script type="module" src="../core/js/app.js"></script>
   <script type="module" src="../assets/js/kipg.js?v=20261025-prayer-trace-v5-bright"></script>
-  <script type="module" src="../assets/js/prayer.js?v=20261025-optional-contact"></script>
+  <script type="module" src="../assets/js/prayer.js?v=20261030-contact-preference-v1"></script>
 
   <link rel="canonical" href="https://kipgnetwork.com/pages/prayer.html">
   <meta name="robots" content="index, follow">
@@ -75,11 +75,6 @@
                 <span>First name or initial <strong aria-hidden="true">*</strong></span>
                 <input type="text" name="name" maxlength="60" autocomplete="given-name" required placeholder="First name or initial">
               </label>
-
-              <label class="kipg-field">
-                <span>Email address <span data-email-requirement>(required for follow-up)</span></span>
-                <input type="email" name="email" maxlength="160" autocomplete="email" placeholder="you@example.com">
-              </label>
             </div>
 
             <label class="kipg-field">
@@ -91,10 +86,37 @@
             <fieldset class="kipg-contact-choice">
               <legend>Would you like someone from KIPG to contact you? <strong aria-hidden="true">*</strong></legend>
               <div class="kipg-contact-options">
-                <label><input type="radio" name="contact_requested" value="yes" required><span><strong>Yes</strong><small>Someone from KIPG may reply to the email above.</small></span></label>
+                <label><input type="radio" name="contact_requested" value="yes" required><span><strong>Yes</strong><small>I'd appreciate a personal follow-up from the KIPG prayer team.</small></span></label>
                 <label><input type="radio" name="contact_requested" value="no" required><span><strong>No</strong><small>Please pray for me, but I do not want follow-up contact.</small></span></label>
               </div>
             </fieldset>
+
+            <div class="kipg-contact-details" data-prayer-contact-details hidden>
+              <fieldset class="kipg-contact-choice">
+                <legend>How would you prefer to be contacted? <strong aria-hidden="true">*</strong></legend>
+                <div class="kipg-contact-options kipg-contact-method-options">
+                  <label><input type="radio" name="contact_method" value="email"><span><strong>✉ Email</strong><small>A personal email reply</small></span></label>
+                  <label><input type="radio" name="contact_method" value="text"><span><strong>▤ Text</strong><small>A personal text message</small></span></label>
+                  <label><input type="radio" name="contact_method" value="phone"><span><strong>☎ Phone call</strong><small>A personal phone call</small></span></label>
+                </div>
+              </fieldset>
+
+              <label class="kipg-field" data-prayer-email-field hidden>
+                <span>Email address <strong aria-hidden="true">*</strong></span>
+                <input type="email" name="email" maxlength="160" autocomplete="email" placeholder="you@example.com">
+              </label>
+
+              <label class="kipg-field" data-prayer-phone-field hidden>
+                <span>Phone number <strong aria-hidden="true">*</strong></span>
+                <input type="tel" name="phone" maxlength="24" autocomplete="tel" inputmode="tel" placeholder="(555) 123-4567">
+                <small>Include your country code if outside the U.S.</small>
+              </label>
+
+              <label class="kipg-text-consent" data-prayer-sms-consent hidden>
+                <input type="checkbox" name="sms_consent">
+                <span>I consent to a KIPG prayer team member contacting me by personal text message about this request at the number above. Standard message and data rates may apply. This is not consent to promotional or automated messages.</span>
+              </label>
+            </div>
 
             <div class="kipg-prayer-trap" aria-hidden="true">
               <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
