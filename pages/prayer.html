@@ -8,10 +8,10 @@
   <title>Prayer &amp; Encouragement | KIPG Network</title>
   <link rel="icon" href="../assets/images/kipg-network-logo.png">
   <link rel="stylesheet" href="../core/css/framework.css">
-  <link rel="stylesheet" href="../assets/css/kipg.css?v=20261030-contact-preference-v1">
+  <link rel="stylesheet" href="../assets/css/kipg.css?v=20261031-prayer-closed-state-v2">
   <script type="module" src="../core/js/app.js"></script>
   <script type="module" src="../assets/js/kipg.js?v=20261025-prayer-trace-v5-bright"></script>
-  <script type="module" src="../assets/js/prayer.js?v=20261030-contact-preference-v1"></script>
+  <script type="module" src="../assets/js/prayer.js?v=20261031-prayer-closed-state-v2"></script>
 
   <link rel="canonical" href="https://kipgnetwork.com/pages/prayer.html">
   <meta name="robots" content="index, follow">
@@ -68,6 +68,7 @@
             <h2>We're here to pray with you.</h2>
             <p>Only the information needed to receive your request and honor your contact preference is required.</p>
           </div>
+          <p class="kipg-prayer-availability" data-prayer-availability role="status">Prayer submissions are not open yet. You can preview the form, but nothing entered here will be sent.</p>
 
           <form class="kipg-prayer-form" data-prayer-form novalidate>
             <div class="kipg-prayer-grid">
@@ -128,8 +129,8 @@
             </div>
 
             <div data-prayer-security aria-label="Security check"></div>
-            <button class="kipg-btn kipg-prayer-submit" type="submit" data-prayer-submit disabled>Send Prayer Request</button>
-            <p class="kipg-prayer-status" data-prayer-status role="status" aria-live="polite"></p>
+            <button class="kipg-btn kipg-prayer-submit" type="submit" data-prayer-submit aria-describedby="prayer-availability" disabled>Prayer Submissions Not Open</button>
+            <p class="kipg-prayer-status" id="prayer-availability" data-prayer-status role="status" aria-live="polite"></p>
           </form>
 
           <div class="kipg-prayer-success" data-prayer-success hidden>
