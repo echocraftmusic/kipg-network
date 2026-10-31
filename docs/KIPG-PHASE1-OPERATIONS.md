@@ -32,3 +32,10 @@
 - GitHub: `npm test`, `npm run verify`, `npm run verify:seo`; inspect GitHub Actions after every deployment.
 - Cloudflare: verify new Worker settings (don't infer status from code alone), D1 tables, R2 privacy, Access policy, cron, and active scripts.
 - Never expose secrets or confidential prayer contents in logs, email, GitHub, public API responses, or screenshots.
+
+## Private synthetic prayer rehearsal (2026-10-30)
+- The Cloudflare Access-protected `prayer-admin.kipgnetwork.com` dashboard now has a **Test Prayer** form, activated only on the private admin Worker by `PRAYER_TEST_MODE=true`. Do not publish the dashboard URL as a public ministry entry point.
+- Authorized ministry leads can type an invented visitor name and fictional request, explicitly affirm no real confidential information is included, and submit. Requests are encrypted with the temporary shared rehearsal key and stored in R2 under `test/<uuid>.json`; D1 contains metadata only.
+- Synthetic records are tagged `TEST` in the queue, support the standard status and audit flow, and can be deleted from both D1 and R2 using the explicit private delete action. Test deletion cannot target ordinary prayer records.
+- Test entries are marked with `notification_sent_at` to prevent email queuing; the intake Worker also excludes `test/%` objects from future notification retries. Email and public submission switches remain off.
+- **Before accepting real requests:** remove all test records; verify D1 and R2 cleanup; set `PRAYER_TEST_MODE=false` (or remove the binding), replace and securely back up the temporary test-only encryption key on both Workers, verify authorized sign-in, complete private end-to-end tests, and configure ministry retention/alerts. The testing key must not be used to encrypt real people's prayers.
