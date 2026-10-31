@@ -261,13 +261,28 @@ async function load(){
   const data=await api('/api/requests');testMode=!!data.testMode;
   byId('test-panel').hidden=!testMode;
   const list=byId('requests');list.replaceChildren();
-  for(const item of data.requests){
+  const rows=Array.isArray(data.requests)?data.requests:[];
+  byId('queue-count').textContent=rows.length===0?'No requests pending review.':rows.length===1?'1 request in the queue':rows.length+' requests in the queue (showing up to 100)';
+  for(const item of rows){
    const button=document.createElement('button');
-   button.type='button';
-   button.textContent=(item.isTest?'[TEST] ':'')+item.received_at+' · '+item.status+(item.wants_follow_up?' · Follow-up requested':'');
+   button.type='button';button.className='request-row';
+   button.dataset.requestId=item.id;
+   button.setAttribute('aria-pressed',String(item.id===selected));
+   const date=document.createElement('span');date.className='row-date';
+   const parsed=new Date(item.received_at);
+   date.textContent=(item.isTest?'[TEST] ':'')+(Number.isNaN(parsed.getTime())?item.received_at:parsed.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'}));
+   const meta=document.createElement('span');meta.className='row-meta';
+   const statusLabel=document.createElement('span');statusLabel.className='row-status';
+   const titles={pending:'New / Pending',reviewing:'Being reviewed',prayed:'Prayed for',follow_up:'Follow-up needed',closed:'Closed'};
+   statusLabel.textContent=titles[item.status]||item.status;meta.append(statusLabel);
+   if(item.wants_follow_up){const follow=document.createElement('span');follow.className='row-follow';follow.textContent='Follow-up requested';meta.append(follow);}
+   button.append(date,meta);
    button.onclick=()=>open(item.id);list.append(button);
   }
-  if(!data.requests.length)list.textContent='No requests yet.';
+  if(!rows.length)list.textContent='No requests yet.';
+  else if(selected&&!rows.some(item=>item.id===selected)){
+   selected=null;byId('details').textContent='Select a prayer request above to read its details.';byId('actions').hidden=true;
+  }
  }catch(e){status(e.message)}
 }
 async function open(id){
@@ -277,10 +292,13 @@ async function open(id){
   if(r.isTest){const badge=document.createElement('p');badge.className='test-label';badge.textContent='FICTIONAL TEST RECORD';box.append(badge);}
   for(const [name,value] of [['Received',r.received_at],['Name',r.name],['Email',r.email||'(not supplied)'],['Follow-up requested',r.contactRequested?'Yes':'No'],['Prayer request',r.prayerRequest]]){
    const p=document.createElement('p'),strong=document.createElement('strong');
+   if(name==='Prayer request')p.className='prayer-content';
    strong.textContent=name+': ';p.append(strong,document.createTextNode(String(value||'')));box.append(p);
   }
   byId('status').value=r.status;
-  byId('actions').hidden=false;byId('delete-test').hidden=!(r.isTest&&testMode);status('');
+  byId('actions').hidden=false;byId('delete-test').hidden=!(r.isTest&&testMode);
+  document.querySelectorAll('.request-row').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.requestId===selected)));
+  status('');
  }catch(e){status(e.message)}
 }
 byId('reload').onclick=load;
@@ -309,7 +327,7 @@ byId('delete-test').onclick=async()=>{
  if(!confirm('Permanently delete this FICTIONAL TEST record from the prayer queue and encrypted storage?'))return;
  try{
   const result=await api('/api/test-requests/'+encodeURIComponent(selected),{method:'DELETE',headers:{'X-KIPG-Test-Action':'delete'}});
-  selected=null;byId('details').textContent='Select a prayer request.';byId('actions').hidden=true;
+  selected=null;byId('details').textContent='Select a prayer request above to read its details.';byId('actions').hidden=true;
   await load();
   status(result.storageCleanup?'Synthetic test record deleted.':'Test removed from the queue, but encrypted storage cleanup needs attention.');
  }catch(e){status(e.message)}
