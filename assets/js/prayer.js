@@ -1,5 +1,6 @@
 const form=document.querySelector('[data-prayer-form]');
 const submit=document.querySelector('[data-prayer-submit]');
+const availability=document.querySelector('[data-prayer-availability]');
 const status=document.querySelector('[data-prayer-status]');
 const success=document.querySelector('[data-prayer-success]');
 const another=document.querySelector('[data-prayer-another]');
@@ -66,15 +67,21 @@ async function loadConfig(){
     config=await response.json();
     if(config.enabled===true){
       submit.disabled=true;
+      submit.textContent='Send Prayer Request';
+      if(availability)availability.hidden=true;
       setStatus('');
       loadSecurity();
     }else{
       submit.disabled=true;
-      setStatus('The secure prayer connection is being finalized. The form is ready, but submissions are not open yet.','ready');
+      submit.textContent='Prayer Submissions Not Open';
+      if(availability)availability.hidden=false;
+      setStatus('Nothing has been sent. Prayer submissions will open after the secure connection is finalized.','ready');
     }
   }catch{
     submit.disabled=true;
-    setStatus('Prayer submissions are temporarily unavailable. Please check back soon.','error');
+    submit.textContent='Prayer Submissions Unavailable';
+    if(availability)availability.hidden=false;
+    setStatus('Prayer submissions are temporarily unavailable. Nothing has been sent. Please check back soon.','error');
   }
 }
 textarea?.addEventListener('input',()=>{if(count)count.textContent=String(textarea.value.length);});
