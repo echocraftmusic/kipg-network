@@ -200,7 +200,7 @@ test('prayer dashboard offers persistent, keyboard-operable light and dark theme
  const button={textContent:'',setAttribute:(k,v)=>attributes.set(k,v),addEventListener:(event,handler)=>{listeners[event]=handler}};
  const doc={documentElement:{dataset:{}},getElementById:id=>id==='theme-toggle'?button:null};
  const globals={document:doc,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)}};
- runInNewContext(headerScript+String.fromCharCode(10)+mainTheme,globals);
+ runInNewContext(headerScript+String.fromCharCode(10)+mainTheme,{...globals});
  assert.equal(doc.documentElement.dataset.theme,'dark');
  assert.equal(button.textContent,'☀ Light mode');
  assert.equal(attributes.get('aria-pressed'),'false');
@@ -215,6 +215,6 @@ test('prayer dashboard offers persistent, keyboard-operable light and dark theme
  assert.equal(storage.get('kipg-prayer-admin-theme'),'dark');
  storage.set('kipg-prayer-admin-theme','light');
  doc.documentElement.dataset.theme='dark';
- runInNewContext(headerScript+String.fromCharCode(10)+mainTheme,globals);
+ runInNewContext(headerScript+String.fromCharCode(10)+mainTheme,{...globals});
  assert.equal(doc.documentElement.dataset.theme,'light','Saved preference survives a simulated reload');
 });
