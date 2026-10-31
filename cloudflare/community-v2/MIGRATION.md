@@ -55,3 +55,15 @@ Supabase Preview fails on `kipg_profiles already exists` in a repeated SQL migra
 - Staging tables include `login_requests`, `member_sessions`, `auth_rate_limits` and private `blocked_username_terms` in addition to member/chat/moderation tables.
 - Username moderation seed currently contains 54 blocked/reserved terms across staff impersonation, profanity, sexual/hateful content, provocative spiritual terms and political/campaign names.
 - Verification immediately after schema install: 0 members, 0 login requests, 0 sessions. No Supabase data was copied and no website configuration was changed.
+
+## Staging auth Worker deployed (2026-10-31)
+- Worker: `kipg-community-auth-staging`
+- D1 binding: `COMMUNITY_DB` → `kipg-community-staging`
+- Current deployment traffic: 100% to the latest staging Worker version.
+- `EMAIL_ENABLED=false`
+- `TEST_MODE=false`
+- Workers.dev and preview subdomains are disabled, so this staging service is not publicly reachable yet.
+- Implemented routes: `POST /auth/request`, `GET /auth/verify`, `GET /me`, `POST /username`, and `POST /signout`.
+- Magic-link tokens and session tokens are stored only as hashes in D1. Sessions use a Secure, HttpOnly, SameSite=Lax `__Host-` cookie.
+- Username changes consult the private D1 blocklist and return a generic member-facing rejection message rather than exposing the internal term list.
+- The live website still uses Supabase; no Community frontend cutover has occurred.
