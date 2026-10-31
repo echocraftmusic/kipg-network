@@ -64,3 +64,103 @@ test('dashboard CSP permits only same-origin queue API access',async()=>{
  assert.equal(queue.status,200);
  assert.deepEqual(await queue.json(),{requests:[]});
 });
+
+function setupSyntheticStore(){
+ const env=setup(),records=new Map(),objects=new Map(),audit=[];
+ env.PRAYER_TEST_MODE='true';
+ env.PRAYER_RECOVERY={
+   async put(key,data){if(objects.has(key))return null;objects.set(key,data);return {etag:'synthetic'};},
+   async get(key){return objects.has(key)?{json:async()=>JSON.parse(objects.get(key))}:null;},
+   async delete(key){objects.delete(key)}
+ };
+ env.PRAYER_DB={
+   prepare(sql){
+     let args=[];
+     const statement={
+       bind(...values){args=values;return statement;},
+       async run(){
+         if(sql.startsWith('INSERT INTO prayer_requests')){
+           records.set(args[0],{id:args[0],object_key:args[1],status:'pending',wants_follow_up:0,received_at:args[2],updated_at:args[2],notification_sent_at:args[2]});
+         }else if(sql.startsWith('DELETE FROM prayer_audit')){
+           for(let i=audit.length-1;i>=0;i--)if(audit[i].id===args[0])audit.splice(i,1);
+         }else if(sql.startsWith('DELETE FROM prayer_requests')){
+           const row=records.get(args[0]);if(row?.object_key===args[1])records.delete(args[0]);
+         }else if(sql.startsWith('INSERT INTO prayer_audit')){
+           audit.push({id:args[0],actor:args[1],action:args[2]});
+         }else if(sql.startsWith('UPDATE prayer_requests SET')){
+           const row=records.get(args[2]);if(row)row.status=args[0];
+         }
+         return {success:true};
+       },
+       async first(){
+         if(sql.startsWith('SELECT id FROM prayer_requests'))return records.has(args[0])?{id:args[0]}:null;
+         return records.get(args[0])||null;
+       },
+       async all(){return {results:[...records.values()]}}
+     };
+     return statement;
+   },
+   async batch(statements){const result=[];for(const s of statements)result.push(await s.run());return result;}
+ };
+ return {env,records,objects,audit};
+}
+const testPostUrl='https://prayer-admin.kipgnetwork.com/api/test-requests';
+const fictionalPrayer='A fictional family is moving to another city and wants encouragement.';
+const syntheticBody={testName:'Fictional Guest',prayerRequest:fictionalPrayer,confirmSynthetic:true};
+async function syntheticRequest(environment,options={}){
+ return handleAdmin(await req(options.claims||{},{
+   url:options.url||testPostUrl,method:options.method||'POST',
+   headers:{Origin:'https://prayer-admin.kipgnetwork.com','Content-Type':'application/json',...(options.headers||{})},
+   body:options.body===undefined?JSON.stringify(syntheticBody):options.body
+ }),environment,fetchCerts);
+}
+test('private synthetic prayer round-trip encrypts content, marks queue, and skips emails',async()=>{
+ const {env,records,objects,audit}=setupSyntheticStore();
+ const created=await syntheticRequest(env);
+ assert.equal(created.status,201);
+ const {id,isTest}=await created.json();assert.equal(isTest,true);
+ assert.ok(records.get(id)?.object_key.startsWith('test/'));
+ assert.ok(records.get(id)?.notification_sent_at,'Test prayers must never enter notification queue');
+ const encrypted=objects.get('test/'+id+'.json');
+ assert.ok(encrypted);
+ assert.equal(encrypted.includes(fictionalPrayer),false,'Unencrypted test text must not enter R2');
+ const list=await handleAdmin(await req({}),env,fetchCerts);
+ assert.equal(list.status,200);
+ const listData=await list.json();assert.equal(listData.testMode,true);
+ assert.equal(listData.requests[0].isTest,true);
+ assert.equal(Object.hasOwn(listData.requests[0],'object_key'),false);
+ const detail=await handleAdmin(await req({}, {url:url+'/'+id}),env,fetchCerts);
+ assert.equal(detail.status,200);
+ const requestData=(await detail.json()).request;
+ assert.equal(requestData.isTest,true);
+ assert.equal(requestData.email,'');
+ assert.ok(requestData.prayerRequest.includes(fictionalPrayer));
+ const changed=await syntheticRequest(env,{url:url+'/'+id+'/status',body:JSON.stringify({status:'prayed'})});
+ assert.equal(changed.status,200);assert.equal(records.get(id).status,'prayed');assert.equal(audit.length,1);
+ const removed=await syntheticRequest(env,{method:'DELETE',url:testPostUrl+'/'+id,headers:{'X-KIPG-Test-Action':'delete'},body:null});
+ assert.equal(removed.status,200);assert.equal((await removed.json()).storageCleanup,true);
+ assert.equal(records.size,0);assert.equal(objects.size,0);assert.equal(audit.length,0);
+});
+test('synthetic endpoint rejects forged identity, wrong origin and disabled test mode',async()=>{
+ const {env,objects}=setupSyntheticStore();
+ const wrongUser=await syntheticRequest(env,{claims:{email:'outsider@example.com'}});
+ assert.equal(wrongUser.status,403);
+ const wrongOrigin=await syntheticRequest(env,{headers:{Origin:'https://outside.example'}});
+ assert.equal(wrongOrigin.status,403);
+ env.PRAYER_TEST_MODE='false';
+ assert.equal((await syntheticRequest(env)).status,404);
+ assert.equal(objects.size,0);
+});
+test('test-only deletion refuses real prayer objects',async()=>{
+ const {env,records,objects}=setupSyntheticStore();
+ const id='c5f20f0f-226c-41b4-bd00-5c4174213b41';
+ records.set(id,{id,object_key:'pending/'+id+'.json',status:'pending'});
+ objects.set('pending/'+id+'.json','SECRET RECORD');
+ const rejected=await syntheticRequest(env,{method:'DELETE',url:testPostUrl+'/'+id,headers:{'X-KIPG-Test-Action':'delete'},body:null});
+ assert.equal(rejected.status,403);assert.equal(records.size,1);assert.equal(objects.size,1);
+});
+test('synthetic prayer requires explicit fictional-data confirmation',async()=>{
+ const {env,objects}=setupSyntheticStore();
+ const invalid=await syntheticRequest(env,{body:JSON.stringify({...syntheticBody,confirmSynthetic:false})});
+ assert.equal(invalid.status,400);assert.equal(objects.size,0);
+});
