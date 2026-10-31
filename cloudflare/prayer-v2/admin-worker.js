@@ -40,6 +40,39 @@ async function decrypt(object,env){
 }
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const statuses=new Set(['pending','reviewing','prayed','follow_up','closed']);
+
+const encoder=new TextEncoder();
+const testKey=id=>'test/'+id+'.json';
+const isTestRow=row=>!!row&&row.object_key===testKey(row.id);
+const testEnabled=env=>env.PRAYER_TEST_MODE==='true';
+const sameOrigin=(request,url)=>request.headers.get('Origin')===url.origin;
+// Enforce request size even when a client omits Content-Length.
+async function smallJson(request,limit=2048){
+ if(!request.headers.get('Content-Type')?.toLowerCase().startsWith('application/json'))throw Error('Invalid content type');
+ const reader=request.body?.getReader();
+ if(!reader)throw Error('No JSON body');
+ let length=0;const chunks=[];
+ for(;;){
+  const {done,value}=await reader.read();
+  if(done)break;
+  length+=value.length;
+  if(length>limit){await reader.cancel();throw Error('Body too large');}
+  chunks.push(value);
+ }
+ const bytes=new Uint8Array(length);let offset=0;
+ for(const part of chunks){bytes.set(part,offset);offset+=part.length;}
+ return JSON.parse(textDecoder.decode(bytes));
+}
+async function encryptTest(payload,env){
+ const keyBytes=Uint8Array.from(atob(env.RECOVERY_ENCRYPTION_KEY||''),c=>c.charCodeAt(0));
+ if(keyBytes.length!==32)throw Error('Test key unavailable');
+ const key=await crypto.subtle.importKey('raw',keyBytes,'AES-GCM',false,['encrypt']);
+ const iv=crypto.getRandomValues(new Uint8Array(12));
+ const ciphertext=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,encoder.encode(JSON.stringify({payload,createdAt:Date.now()}))));
+ const b64=bytes=>btoa(String.fromCharCode(...bytes));
+ return {version:1,iv:b64(iv),ciphertext:b64(ciphertext)};
+}
+
 export async function handleAdmin(request,env,fetcher=fetch){
   // No admin interface runs without both private storage bindings and Access JWT checks.
   if(!env.PRAYER_DB||!env.PRAYER_RECOVERY||!env.RECOVERY_ENCRYPTION_KEY)return json({error:'Staff service unavailable'},503);
@@ -53,8 +86,65 @@ export async function handleAdmin(request,env,fetcher=fetch){
     return new Response(DASHBOARD,{status:200,headers:{...headers,'Content-Type':'text/html; charset=utf-8'}});
   }
   if(request.method==='GET'&&path==='/api/requests'){
-    const rows=await env.PRAYER_DB.prepare('SELECT id,status,wants_follow_up,received_at,updated_at FROM prayer_requests ORDER BY received_at DESC LIMIT 100').all();
-    return json({requests:rows.results||[]});
+    const rows=await env.PRAYER_DB.prepare('SELECT id,object_key,status,wants_follow_up,received_at,updated_at FROM prayer_requests ORDER BY received_at DESC LIMIT 100').all();
+    const requests=(rows.results||[]).map(({object_key,...row})=>({...row,isTest:object_key===testKey(row.id)}));
+    return json({requests,testMode:testEnabled(env)});
+  }
+  if(request.method==='POST'&&path==='/api/test-requests'){
+    if(!testEnabled(env))return json({error:'Private test mode is disabled.'},404);
+    if(!sameOrigin(request,url))return json({error:'Invalid request origin'},403);
+    let body;
+    try{body=await smallJson(request,3072);}catch{return json({error:'Invalid or oversized test request.'},400);}
+    if(!body||typeof body!=='object'||Array.isArray(body)||body.confirmSynthetic!==true||
+       Object.keys(body).some(key=>!['testName','prayerRequest','confirmSynthetic'].includes(key))||
+       typeof body.testName!=='string'||typeof body.prayerRequest!=='string')
+       return json({error:'Confirm that this is a fictional test request.'},400);
+    const name=body.testName.trim(),prayer=body.prayerRequest.trim();
+    if(name.length<2||name.length>60||prayer.length<10||prayer.length>800||
+       /[\r\n<>@]/.test(name)||/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(prayer))
+       return json({error:'Please use a fictional name and a test prayer of 10–800 characters.'},400);
+    const id=crypto.randomUUID(),objectKey=testKey(id);
+    const stamp=new Date().toISOString();
+    const payload={submissionId:id,name:'TEST — '+name,email:'',
+      prayerRequest:'TEST ONLY — '+prayer,contactRequested:false};
+    let stored=false;
+    try{
+      const record=await encryptTest(payload,env);
+      const object=await env.PRAYER_RECOVERY.put(objectKey,JSON.stringify(record),
+        {onlyIf:{etagDoesNotMatch:'*'},customMetadata:{kind:'synthetic-prayer-test'}});
+      if(!object)throw Error('R2 did not store the test request');
+      stored=true;
+      const result=await env.PRAYER_DB.prepare(
+        'INSERT INTO prayer_requests(id,object_key,wants_follow_up,notification_sent_at) VALUES (?1,?2,0,?3)')
+        .bind(id,objectKey,stamp).run();
+      if(result?.success===false)throw Error('D1 did not accept test request');
+      const row=await env.PRAYER_DB.prepare('SELECT id FROM prayer_requests WHERE id=?1').bind(id).first();
+      if(!row)throw Error('D1 did not persist test request');
+      return json({ok:true,id,isTest:true},201);
+    }catch{
+      if(stored)try{await env.PRAYER_RECOVERY.delete(objectKey);}catch{}
+      return json({error:'Could not safely create this test request.'},503);
+    }
+  }
+  const deleteTest=path.match(/^\/api\/test-requests\/([0-9a-f-]{36})$/i);
+  if(request.method==='DELETE'&&deleteTest){
+    if(!testEnabled(env))return json({error:'Private test mode is disabled.'},404);
+    if(!sameOrigin(request,url)||request.headers.get('X-KIPG-Test-Action')!=='delete')
+      return json({error:'Invalid request origin or action'},403);
+    const id=deleteTest[1].toLowerCase();
+    if(!uuid.test(id))return json({error:'Not found'},404);
+    const row=await env.PRAYER_DB.prepare('SELECT id,object_key FROM prayer_requests WHERE id=?1').bind(id).first();
+    if(!isTestRow(row))return json({error:'Only synthetic test records may be deleted here.'},403);
+    try{
+      await env.PRAYER_DB.batch([
+        env.PRAYER_DB.prepare('DELETE FROM prayer_audit WHERE request_id=?1').bind(id),
+        env.PRAYER_DB.prepare('DELETE FROM prayer_requests WHERE id=?1 AND object_key=?2').bind(id,row.object_key)
+      ]);
+    }catch{return json({error:'Test metadata could not be cleared.'},503);}
+    try{
+      await env.PRAYER_RECOVERY.delete(row.object_key);
+      return json({ok:true,storageCleanup:true});
+    }catch{return json({ok:true,storageCleanup:false,warning:'The queue is cleared; encrypted test storage still needs cleanup.'});}
   }
   const match=path.match(/^\/api\/requests\/([0-9a-f-]{36})(?:\/status)?$/i);
   if(!match||!uuid.test(match[1]))return json({error:'Not found'},404);
@@ -64,7 +154,7 @@ export async function handleAdmin(request,env,fetcher=fetch){
   if(request.method==='GET'&&path.endsWith(id)){
     const encrypted=await env.PRAYER_RECOVERY.get(row.object_key);
     if(!encrypted)return json({error:'Prayer object unavailable. Contact an administrator.'},503);
-    try{const payload=await decrypt(encrypted,env);return json({request:{...row,name:payload.name,email:payload.email||'',prayerRequest:payload.prayerRequest,contactRequested:payload.contactRequested}});}
+    try{const payload=await decrypt(encrypted,env);const {object_key,...meta}=row;return json({request:{...meta,isTest:isTestRow(row),name:payload.name,email:payload.email||'',prayerRequest:payload.prayerRequest,contactRequested:payload.contactRequested}});}
     catch{return json({error:'Prayer could not be decrypted.'},503);}
   }
   if(request.method==='POST'&&path.endsWith('/status')){
@@ -84,14 +174,128 @@ export async function handleAdmin(request,env,fetcher=fetch){
   }
   return json({error:'Method not supported'},405);
 }
-const DASHBOARD=String.raw`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>KIPG Prayer Ministry — Private</title><style>
-:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#0c0b0a;color:#eee7da}body{margin:0 auto;max-width:1080px;padding:1.5rem}header{border-bottom:1px solid #765a2c;padding-bottom:1rem}h1{font-family:Georgia,serif}a{color:#ebc87c}button,select{background:#241c11;border:1px solid #967135;border-radius:8px;color:#f9eacf;padding:.75rem;font:inherit;cursor:pointer}button:hover{background:#403019}button:focus-visible,select:focus-visible{outline:3px solid #eac074}main{display:grid;grid-template-columns:minmax(230px,1fr) 2fr;gap:1rem;margin-top:1.5rem}.panel{border:1px solid #785d31;border-radius:12px;padding:1rem;min-width:0}#requests{display:grid;gap:.5rem}#requests button{text-align:left;overflow-wrap:anywhere}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.65}#error{color:#ffcc9c}@media(max-width:650px){main{grid-template-columns:1fr}}
-</style></head><body><header><p>KIPG NETWORK · AUTHORIZED MINISTRY USE</p><h1>Prayer Ministry</h1><p>Confidential requests. Never share request details outside approved ministry access.</p></header><p id="error" role="status"></p><main><section class="panel"><h2>Prayer queue</h2><button id="reload">Refresh</button><div id="requests"></div></section><section class="panel"><h2>Request details</h2><div id="details">Select a prayer request.</div><div id="actions" hidden><label for="status">Prayer status</label><select id="status"><option value="pending">New / Pending</option><option value="reviewing">Being reviewed</option><option value="prayed">Prayed for</option><option value="follow_up">Follow-up needed</option><option value="closed">Closed</option></select> <button id="save">Save status</button></div></section></main><script>
-const byId=id=>document.getElementById(id);let selected=null;
-const status=(message)=>byId('error').textContent=message;
-async function api(path,options){const response=await fetch(path,{credentials:'same-origin',cache:'no-store',...options});if(!response.ok)throw new Error('Request failed ('+response.status+').');return response.json()}
-async function load(){try{status('');let data=await api('/api/requests');let list=byId('requests');list.replaceChildren();for(const item of data.requests){const button=document.createElement('button');button.textContent=item.received_at+' · '+item.status+(item.wants_follow_up?' · Follow-up requested':'');button.onclick=()=>open(item.id);list.append(button)}if(!data.requests.length)list.textContent='No requests yet.'}catch(e){status(e.message)}}
-async function open(id){try{const {request:r}=await api('/api/requests/'+encodeURIComponent(id));selected=r.id;const box=byId('details');box.replaceChildren();for(const [name,value] of [['Received',r.received_at],['Name',r.name],['Email',r.email||'(not supplied)'],['Follow-up requested',r.contactRequested?'Yes':'No'],['Prayer request',r.prayerRequest]]){const p=document.createElement('p');const strong=document.createElement('strong');strong.textContent=name+': ';p.append(strong,document.createTextNode(String(value||'')));box.append(p)}byId('status').value=r.status;byId('actions').hidden=false;status('')}catch(e){status(e.message)}}
-byId('reload').onclick=load;byId('save').onclick=async()=>{if(!selected)return;try{await api('/api/requests/'+encodeURIComponent(selected)+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:byId('status').value})});await load();await open(selected)}catch(e){status(e.message)}};load();
+const DASHBOARD=String.raw`<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KIPG Prayer Ministry — Private</title><style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#0c0b0a;color:#eee7da}
+body{margin:0 auto;max-width:1080px;padding:1.5rem}
+header{border-bottom:1px solid #765a2c;padding-bottom:1rem}
+h1{font-family:Georgia,serif}
+h2{margin-top:0}
+button,select,input,textarea{background:#241c11;border:1px solid #967135;border-radius:8px;color:#f9eacf;padding:.7rem;font:inherit}
+button{cursor:pointer}
+button:hover{background:#403019}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #eac074;outline-offset:2px}
+main{display:grid;grid-template-columns:minmax(230px,1fr) 2fr;gap:1rem;margin-top:1.5rem}
+.panel{border:1px solid #785d31;border-radius:12px;padding:1rem;min-width:0}
+#requests{display:grid;gap:.5rem;margin-top:.5rem}
+#requests button{text-align:left;overflow-wrap:anywhere}
+#details{overflow-wrap:anywhere;line-height:1.6}
+#details p{white-space:pre-wrap}
+#actions{margin-top:1rem}
+#error{color:#ffcc9c;min-height:1.2rem}
+#test-panel{margin-top:1rem;border-color:#ab843d;background:linear-gradient(130deg,rgba(180,118,23,.12),transparent 65%)}
+#test-panel label{display:block;margin:.75rem 0 .25rem;font-weight:600}
+#test-panel input[type="text"],#test-panel textarea{box-sizing:border-box;width:100%;background:#12100e}
+#test-panel textarea{resize:vertical;min-height:105px}
+#test-panel .confirm-row{display:flex;align-items:flex-start;gap:.6rem;font-weight:400}
+#test-panel input[type="checkbox"]{width:1.15rem;height:1.15rem;margin:.15rem 0 0;flex:none}
+.test-label{display:inline-block;background:#5d4117;border:1px solid #c49944;border-radius:5px;padding:.1rem .4rem;color:#ffe4aa;font-size:.8em;font-weight:700}
+.hint{color:#d7c39e;line-height:1.5}
+.primary{background:linear-gradient(115deg,#a67325,#e4bb65);border-color:#f0d48d;color:#17120a;font-weight:700}
+.primary:hover{background:#efc770}
+.warning{color:#ffe1b2}
+[hidden]{display:none!important}
+@media(max-width:650px){main{grid-template-columns:1fr}body{padding:1rem}}
+</style></head><body>
+<header><p>KIPG NETWORK · AUTHORIZED MINISTRY USE</p><h1>Prayer Ministry</h1>
+<p>Confidential requests. Never share request details outside approved ministry access.</p></header>
+<p id="error" role="status" aria-live="polite"></p>
+<main>
+<section class="panel"><h2>Prayer queue</h2><button id="reload" type="button">Refresh</button><div id="requests"></div></section>
+<section class="panel"><h2>Request details</h2><div id="details">Select a prayer request.</div>
+<div id="actions" hidden><label for="status">Prayer status</label>
+<select id="status"><option value="pending">New / Pending</option><option value="reviewing">Being reviewed</option><option value="prayed">Prayed for</option><option value="follow_up">Follow-up needed</option><option value="closed">Closed</option></select>
+<button id="save" type="button">Save status</button> <button id="delete-test" type="button" hidden>Delete TEST record</button>
+</div></section>
+</main>
+<section id="test-panel" class="panel" hidden aria-labelledby="test-title">
+<p class="test-label">PRIVATE TEST MODE · SYNTHETIC DATA ONLY</p><h2 id="test-title">Create a fictional prayer request</h2>
+<p class="hint">Test the encryption, prayer queue and ministry workflow here without opening the public form or sending an email. Do not enter a real person's name, contact details, or a genuine prayer request.</p>
+<label for="test-name">Fictional visitor name</label><input id="test-name" type="text" maxlength="60" value="Demo Visitor" autocomplete="off">
+<label for="test-prayer">Fictional prayer request</label>
+<textarea id="test-prayer" maxlength="800" placeholder="Example: Please pray for the fictional Smith family as they prepare to move to a new city."></textarea>
+<label class="confirm-row"><input id="test-confirm" type="checkbox"> <span>I confirm this is a completely fictional test, not a real person's confidential information.</span></label>
+<p><button class="primary" id="create-test" type="button">Submit TEST prayer</button></p><p id="test-result" class="hint" role="status" aria-live="polite"></p>
+</section>
+<script>
+const byId=id=>document.getElementById(id);
+let selected=null,testMode=false;
+const status=message=>byId('error').textContent=message;
+async function api(path,options){
+ const response=await fetch(path,{credentials:'same-origin',cache:'no-store',...options});
+ if(!response.ok){let message='Request failed ('+response.status+').';try{const body=await response.json();if(typeof body.error==='string')message=body.error;}catch{}throw Error(message);}
+ return response.json();
+}
+async function load(){
+ try{
+  status('');
+  const data=await api('/api/requests');testMode=!!data.testMode;
+  byId('test-panel').hidden=!testMode;
+  const list=byId('requests');list.replaceChildren();
+  for(const item of data.requests){
+   const button=document.createElement('button');
+   button.type='button';
+   button.textContent=(item.isTest?'[TEST] ':'')+item.received_at+' · '+item.status+(item.wants_follow_up?' · Follow-up requested':'');
+   button.onclick=()=>open(item.id);list.append(button);
+  }
+  if(!data.requests.length)list.textContent='No requests yet.';
+ }catch(e){status(e.message)}
+}
+async function open(id){
+ try{
+  const {request:r}=await api('/api/requests/'+encodeURIComponent(id));selected=r.id;
+  const box=byId('details');box.replaceChildren();
+  if(r.isTest){const badge=document.createElement('p');badge.className='test-label';badge.textContent='FICTIONAL TEST RECORD';box.append(badge);}
+  for(const [name,value] of [['Received',r.received_at],['Name',r.name],['Email',r.email||'(not supplied)'],['Follow-up requested',r.contactRequested?'Yes':'No'],['Prayer request',r.prayerRequest]]){
+   const p=document.createElement('p'),strong=document.createElement('strong');
+   strong.textContent=name+': ';p.append(strong,document.createTextNode(String(value||'')));box.append(p);
+  }
+  byId('status').value=r.status;
+  byId('actions').hidden=false;byId('delete-test').hidden=!(r.isTest&&testMode);status('');
+ }catch(e){status(e.message)}
+}
+byId('reload').onclick=load;
+byId('save').onclick=async()=>{
+ if(!selected)return;
+ try{
+  await api('/api/requests/'+encodeURIComponent(selected)+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:byId('status').value})});
+  await load();await open(selected);
+ }catch(e){status(e.message)}
+};
+byId('create-test').onclick=async()=>{
+ const name=byId('test-name').value.trim(),prayerRequest=byId('test-prayer').value.trim();
+ const result=byId('test-result');
+ if(!byId('test-confirm').checked){result.textContent='Please confirm that this is fictional test data only.';return;}
+ if(name.length<2||prayerRequest.length<10){result.textContent='Provide a fictional name and at least ten characters of test prayer text.';return;}
+ const button=byId('create-test');button.disabled=true;result.textContent='Saving encrypted test request…';
+ try{
+  const response=await api('/api/test-requests',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({testName:name,prayerRequest,confirmSynthetic:true})});
+  byId('test-prayer').value='';byId('test-confirm').checked=false;
+  result.textContent='Test request created. Open it in the prayer queue to verify its contents and update its status.';
+  await load();await open(response.id);
+ }catch(e){result.textContent=e.message}finally{button.disabled=false}
+};
+byId('delete-test').onclick=async()=>{
+ if(!selected||!testMode)return;
+ if(!confirm('Permanently delete this FICTIONAL TEST record from the prayer queue and encrypted storage?'))return;
+ try{
+  const result=await api('/api/test-requests/'+encodeURIComponent(selected),{method:'DELETE',headers:{'X-KIPG-Test-Action':'delete'}});
+  selected=null;byId('details').textContent='Select a prayer request.';byId('actions').hidden=true;
+  await load();
+  status(result.storageCleanup?'Synthetic test record deleted.':'Test removed from the queue, but encrypted storage cleanup needs attention.');
+ }catch(e){status(e.message)}
+};
+load();
 </script></body></html>`;
 export default {fetch(request,env){return handleAdmin(request,env);}};
