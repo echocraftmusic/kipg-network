@@ -171,9 +171,9 @@ test('full-width prayer queue and detail panels stack vertically with a scrollab
  const html=await response.text();
  const queue=html.indexOf('id="requests"'),detail=html.indexOf('id="details"'),testPanel=html.indexOf('id="test-panel"');
  assert.ok(queue>0&&detail>queue&&testPanel>detail,'Queue, details and private test tools must display in that order');
- assert.match(html,/main\\{display:grid;grid-template-columns:minmax\\(0,1fr\\)/);
- assert.doesNotMatch(html,/grid-template-columns:minmax\\(230px,1fr\\) 2fr/);
- assert.match(html,/#requests\\{[^}]*max-height:340px;[^}]*overflow-y:auto/);
+ assert.equal(html.includes('main{display:grid;grid-template-columns:minmax(0,1fr)'),true);
+ assert.equal(html.includes('grid-template-columns:minmax(230px,1fr) 2fr'),false);
+ assert.equal(html.includes('max-height:340px;min-height:72px;overflow-y:auto'),true);
  assert.match(html,/className='request-row'/);
  assert.match(html,/className='prayer-content'/);
  assert.match(html,/aria-pressed/);
