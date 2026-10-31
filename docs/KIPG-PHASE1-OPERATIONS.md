@@ -49,3 +49,9 @@ The intake Worker requires **both** `SUBMISSIONS_ENABLED=true` and `PRODUCTION_K
 - The protected dashboard reveals the contact preference, relevant address/number, and text consent only when an authorized ministry leader opens the request. Contact information stays out of queue summaries, notification emails, and public pages.
 - **No automatic SMS or calls are implemented.** Any future integration with an SMS provider must be separately reviewed for consent, opt-out handling, messaging rules, and privacy. Initial responses should be manual by authorized ministry leaders.
 - Public intake remains disabled until the owner-held production encryption-key backup, confidential retention rules, and remaining launch gates are approved.
+
+## Owner-held production encryption recovery (2026-10-31)
+- A separate [Production Encryption & Recovery Playbook](PRAYER-ENCRYPTION-RECOVERY.md) now describes local key generation, encrypted owner backup and recovery verification without placing the secret in ChatGPT or the public GitHub repository.
+- Intake requires `PRODUCTION_KEY_FINGERPRINT` to match SHA-256 of the actual `RECOVERY_ENCRYPTION_KEY` **in addition to** the existing production-readiness and submission switches. An absent or mismatched fingerprint must fail closed.
+- The protected staff Worker exposes `GET /api/key-fingerprint` after verified Cloudflare Access JWT authentication; it returns a one-way SHA-256 fingerprint, never the key. The owner compares this to their offline record.
+- Do not replace the current rehearsal key before the owner has saved and confirmed the recoverable production key, and do not enable intake during the transition. Cloudflare's Worker secret APIs do not provide a way to retrieve the secret later.
