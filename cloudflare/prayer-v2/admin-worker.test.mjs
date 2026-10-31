@@ -164,3 +164,18 @@ test('synthetic prayer requires explicit fictional-data confirmation',async()=>{
  const invalid=await syntheticRequest(env,{body:JSON.stringify({...syntheticBody,confirmSynthetic:false})});
  assert.equal(invalid.status,400);assert.equal(objects.size,0);
 });
+
+test('full-width prayer queue and detail panels stack vertically with a scrollable five-row queue',async()=>{
+ const env=setup(),response=await handleAdmin(await req({}, {url:'https://prayer-admin.kipgnetwork.com/'}),env,fetchCerts);
+ assert.equal(response.status,200);
+ const html=await response.text();
+ const queue=html.indexOf('id="requests"'),detail=html.indexOf('id="details"'),testPanel=html.indexOf('id="test-panel"');
+ assert.ok(queue>0&&detail>queue&&testPanel>detail,'Queue, details and private test tools must display in that order');
+ assert.match(html,/main\\{display:grid;grid-template-columns:minmax\\(0,1fr\\)/);
+ assert.doesNotMatch(html,/grid-template-columns:minmax\\(230px,1fr\\) 2fr/);
+ assert.match(html,/#requests\\{[^}]*max-height:340px;[^}]*overflow-y:auto/);
+ assert.match(html,/className='request-row'/);
+ assert.match(html,/className='prayer-content'/);
+ assert.match(html,/aria-pressed/);
+ assert.match(html,/id="test-panel"[^>]*hidden/);
+});
