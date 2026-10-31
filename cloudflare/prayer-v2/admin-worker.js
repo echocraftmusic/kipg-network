@@ -48,7 +48,7 @@ export async function handleAdmin(request,env,fetcher=fetch){
   if(!email)return json({error:'Access denied'},403);
   const url=new URL(request.url);
   const path=url.pathname;
-  const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",'Referrer-Policy':'no-referrer'};
+  const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'; connect-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",'Referrer-Policy':'no-referrer'};
   if(request.method==='GET'&&path==='/'){
     return new Response(DASHBOARD,{status:200,headers:{...headers,'Content-Type':'text/html; charset=utf-8'}});
   }
