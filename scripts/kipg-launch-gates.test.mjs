@@ -45,7 +45,7 @@ test('prayer launch includes urgent-help guidance and an operations policy',asyn
   assert.match(page,/call 911/i);
   assert.match(page,/call or text 988/i);
   const policy=await read('docs/PRAYER-MINISTRY-OPERATIONS.md');
-  assert.match(policy,/Closed requests: review for deletion within 30 days/i);
+  assert.ok(policy.includes('**Closed requests:** review for deletion within 30 days.'));
   assert.match(policy,/Maximum ordinary retention/i);
   assert.match(policy,/manual person-to-person/i);
   assert.match(policy,/primary and one backup ministry lead/i);
