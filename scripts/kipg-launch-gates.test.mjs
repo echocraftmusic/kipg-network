@@ -16,8 +16,8 @@ test('new prayer Worker keeps fail-closed switches and protected storage',async(
   assert.match(source,/SUBMISSIONS_ENABLED\s*!==\s*'true'/);
   assert.match(source,/NOTIFICATIONS_ENABLED\s*!==\s*'true'/);
   assert.match(source,/RECOVERY_ENCRYPTION_KEY/);
-  assert.match(source,/PRODUCTION_KEY_READY\\s*!==\\s*'true'/);
-  assert.match(source,/verifiedProductionKey\\(env\\)/);
+  assert.ok(source.includes("env.PRODUCTION_KEY_READY !== 'true'"));
+  assert.ok(source.includes('verifiedProductionKey(env)'));
   assert.match(source,/PRODUCTION_KEY_FINGERPRINT/);
   assert.match(source,/PRAYER_RATE_LIMITER/);
   assert.match(source,/PRAYER_RECOVERY/);
