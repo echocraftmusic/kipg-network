@@ -58,7 +58,17 @@ async function requestLink(req,env){
   const testAuthorized=env.TEST_MODE==='true'&&accessEmail&&accessEmail===String(env.TEST_ALLOWED_EMAIL||'').trim().toLowerCase();
   if(testAuthorized)return json({ok:true,test_token:raw,expires_in_seconds:900,test_only:true});
   if(env.EMAIL_ENABLED!=='true')return json({error:'Community email delivery is not enabled on this staging service.'},503);
-  return json({ok:true,message:'If that address can receive a KIPG sign-in link, it will arrive shortly.'});
+  if(!env.RESEND_API_KEY)return json({error:'Community email delivery is not configured.'},503);
+  const verifyBase=String(env.MAGIC_LINK_BASE||'https://community-staging.kipgnetwork.com/auth/verify');
+  const verifyUrl=verifyBase+'?token='+encodeURIComponent(raw);
+  const subject=mode==='signup'?'Your KIPG Community join link':'Your KIPG Community sign-in link';
+  const intro=mode==='signup'?'Use the secure link below to finish creating your KIPG Community account.':'Use the secure link below to sign in to your KIPG Community account.';
+  const text=[subject,'',intro,'',verifyUrl,'','This link expires in 15 minutes and can be used only once.','If you did not request this link, you can ignore this email.','','Faith. Conversation. Community.','KIPG Network'].join('\n');
+  const html=`<div style="background:#111;padding:32px;font-family:Arial,sans-serif;color:#f7f4ec;max-width:600px;margin:auto"><p style="color:#d8b96e;letter-spacing:2px">KIPG NETWORK</p><h1>${subject}</h1><p>${intro}</p><p style="margin:28px 0"><a href="${verifyUrl}" style="background:#d8b96e;color:#111;padding:14px 20px;text-decoration:none;border-radius:6px;display:inline-block;font-weight:bold">Continue to KIPG Community</a></p><p style="font-size:13px;color:#bbb">This link expires in 15 minutes and can be used only once.</p><p style="font-size:13px;color:#bbb">If you did not request this link, you can ignore this email.</p><p>Faith. Conversation. Community.<br>KIPG Network</p></div>`;
+  const sent=await fetch('https://api.resend.com/emails',{method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+env.RESEND_API_KEY,'Idempotency-Key':'kipg-community-magic-'+id},body:JSON.stringify({from:String(env.EMAIL_FROM||'KIPG Network <community@kipgnetwork.com>'),to:[email],reply_to:String(env.EMAIL_REPLY_TO||'community@kipgnetwork.com'),subject,text,html})});
+  let delivery={};try{delivery=await sent.json();}catch{}
+  if(!sent.ok||typeof delivery.id!=='string')return json({error:'We could not send your sign-in email. Please try again later.'},502);
+  return json({ok:true,message:'Check your inbox and spam folder for your KIPG Community link.'});
 }
 async function verifyLink(req,env){
   const url=new URL(req.url),raw=url.searchParams.get('token')||'';if(raw.length<20)return json({error:'Invalid or expired link.'},400);
@@ -132,7 +142,7 @@ document.getElementById('signout').onclick=async()=>{const r=await fetch('/signo
 export default{async fetch(req,env){
   const url=new URL(req.url),p=url.pathname;
   if(p==='/'&&req.method==='GET')return stagingHtml();
-  if(p==='/health'&&req.method==='GET')return json({ok:true,service:'kipg-community-auth',environment:'staging',email_enabled:env.EMAIL_ENABLED==='true',test_mode:env.TEST_MODE==='true'});
+  if(p==='/health'&&req.method==='GET')return json({ok:true,service:'kipg-community-auth',environment:'staging',email_enabled:env.EMAIL_ENABLED==='true',email_configured:Boolean(env.RESEND_API_KEY),test_mode:env.TEST_MODE==='true'});
   if(p==='/auth/request'&&req.method==='POST')return requestLink(req,env);
   if(p==='/auth/verify'&&req.method==='GET')return verifyLink(req,env);
   if(p==='/me'&&req.method==='GET')return me(req,env);
