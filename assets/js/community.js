@@ -1,5 +1,5 @@
 import {accountReturn} from './room-navigation.js?v=20261003-room-return';
-import {getCommunityClient,communityError} from './community-client.js?v=20261003-shared';
+import {getCommunityClient,communityError} from './community-client.js?v=20261031-username-moderation-v1';
 const $=selector=>document.querySelector(selector);
 const form=$('[data-account-form]'),submit=$('[data-account-submit]'),result=$('[data-account-result]'),connection=$('[data-account-connection]');
 const callback=new URL('community.html',location.href).href;
