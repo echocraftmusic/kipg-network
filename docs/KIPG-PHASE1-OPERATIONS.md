@@ -5,19 +5,19 @@
 - The public "Need Prayer?" button and private prayer page are present.
 - D1 database `kipg-prayer` exists, including `prayer_requests` and `prayer_audit`.
 - Private R2 bucket `kipg-prayer-recovery` exists, with public bucket domain disabled.
-- Worker `kipg-prayer-intake` is deployed and bound to D1 and R2, with Turnstile, rate limiter (5 per 60 s per Cloudflare location/IP), a test-only AES-256-GCM key, and a five-minute cron.
-- Public intake settings `SUBMISSIONS_ENABLED=false`, `PRODUCTION_KEY_READY=false` and `NOTIFICATIONS_ENABLED=false`. The website's `data/prayer-config.json` also remains `enabled:false` and points to the *new* Worker.
-- Worker `kipg-prayer-admin` is deployed and bound to D1/R2, with a matching **test-only** encryption key and Cloudflare Access JWT verification.
+- Worker `kipg-prayer-intake` is deployed and bound to D1 and R2, with Turnstile, rate limiter (5 per 60 s per Cloudflare location/IP), the verified production AES-256-GCM key, and a five-minute cron.
+- Public intake settings `SUBMISSIONS_ENABLED=false`, `PRODUCTION_KEY_READY=true` and `NOTIFICATIONS_ENABLED=false`. The production key fingerprint matches the owner-held recovery record. The website's `data/prayer-config.json` remains `enabled:false` and points to the *new* Worker.
+- Worker `kipg-prayer-admin` is deployed and bound to D1/R2 with the matching verified production encryption key and Cloudflare Access JWT verification.
 - Cloudflare Access protects `prayer-admin.kipgnetwork.com`; current access emails are `troy.saha@gmail.com` and `george@kipgnetwork.com` (the second address must be verified before testing). The admin Worker's public `workers.dev` hostname remains disabled.
 - Previous Worker `kipg-prayer-recovery`: `workers.dev` disabled; both legacy `SUBMISSIONS_ENABLED=false` and `DELIVERY_ENABLED=false`; existing secrets preserved. No website should target it.
 - KIPG DNS currently uses Purelymail MX/DKIM, SPF, DMARC, and existing Resend-related DNS. **No mail routing records were modified.**
 - CI includes automated prayer intake, browser form, and launch-gate tests.
 
 ## Not complete: explicit launch blockers
-1. **Encryption key custody.** The current shared AES key is for synthetic test data ONLY. Replace it before real prayer requests, and securely back up the final key outside GitHub and ChatGPT so both Workers can recover the same encrypted R2 objects. Never copy the key into the repository. Test restoration and establish rotation procedures.
+1. **Encryption key custody — COMPLETE.** The production key is installed on both Workers, its fingerprint matches the owner-held recovery record, and a fictional production-key encrypt/decrypt/status/delete rehearsal passed with zero residual test/pending objects.
 2. **Staff authentication.** Test a real Cloudflare Access login, JWT verification, dashboard list/read/status actions, and forbidden access in a separate browser. Confirm PG's verified email; replace the placeholder if needed. Enforce available MFA options.
 3. **Notification sender and receiving mailbox.** Verify `prayers@kipgnetwork.com` exists in Purelymail or its actual provider. Provision a provider-approved Resend API key as a Cloudflare Worker secret, verify sender authorization, and enable `NOTIFICATIONS_ENABLED` ONLY after a successful synthetic email. Never email prayer contents.
-4. **Operational review.** Agree on retention/deletion windows, backup and restore strategy, handling of urgent requests, on-call owners, and errors/alerting. No unreviewed automatic deletion.
+4. **Operational review.** The baseline retention, confidentiality, follow-up and urgent-request workflow is documented in [Prayer Ministry Operations](PRAYER-MINISTRY-OPERATIONS.md). Before launch, confirm the primary and backup ministry lead and finish a safe manual deletion workflow. No unreviewed automatic deletion.
 5. **Private end-to-end testing.** Test Turnstile, rate limiting, D1/R2 data consistency, duplicate requests, encrypted R2 retrieval, Access deny/allow, status audit atomics, and notification retries. All tests use invented data; then clear test records once policies are settled.
 6. **Public approval.** Only after the above: enable the Worker `SUBMISSIONS_ENABLED`; verify production settings; then flip public `enabled:true` with a controlled rollout. Keep the old Worker disabled.
 
@@ -55,3 +55,9 @@ The intake Worker requires **both** `SUBMISSIONS_ENABLED=true` and `PRODUCTION_K
 - Intake requires `PRODUCTION_KEY_FINGERPRINT` to match SHA-256 of the actual `RECOVERY_ENCRYPTION_KEY` **in addition to** the existing production-readiness and submission switches. An absent or mismatched fingerprint must fail closed.
 - The protected staff Worker exposes `GET /api/key-fingerprint` after verified Cloudflare Access JWT authentication; it returns a one-way SHA-256 fingerprint, never the key. The owner compares this to their offline record.
 - Do not replace the current rehearsal key before the owner has saved and confirmed the recoverable production key, and do not enable intake during the transition. Cloudflare's Worker secret APIs do not provide a way to retrieve the secret later.
+
+## Prayer operations baseline (2026-10-31)
+- Public prayer page now states that KIPG Prayer Ministry is not an emergency/crisis-response service and directs U.S. visitors to 911 for immediate danger and 988 by call/text for emotional distress or mental-health crisis.
+- [Prayer Ministry Operations](PRAYER-MINISTRY-OPERATIONS.md) defines confidentiality, status handling, manual follow-up boundaries, urgent-request escalation, retention reviews, and the requirement to avoid automatic deletion until the deletion/audit workflow is tested.
+- Closed requests are targeted for deletion review within 30 days, with an ordinary maximum target of 90 days after closure unless a specific ministry reason requires longer retention.
+- Initial follow-up remains manual person-to-person; prayer consent does not authorize marketing or automated SMS.
