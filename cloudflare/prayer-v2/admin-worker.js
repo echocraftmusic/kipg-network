@@ -262,7 +262,8 @@ async function load(){
   byId('test-panel').hidden=!testMode;
   const list=byId('requests');list.replaceChildren();
   const rows=Array.isArray(data.requests)?data.requests:[];
-  byId('queue-count').textContent=rows.length===0?'No requests pending review.':rows.length===1?'1 request in the queue':rows.length+' requests in the queue (showing up to 100)';
+  byId('queue-count').hidden=rows.length===0;
+  byId('queue-count').textContent=rows.length===1?'1 request in the queue':rows.length>1?rows.length+' requests in the queue (showing up to 100)':'';
   for(const item of rows){
    const button=document.createElement('button');
    button.type='button';button.className='request-row';
