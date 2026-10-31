@@ -1,6 +1,6 @@
 # KIPG Network — Supabase to Cloudflare migration (planning/staging)
 
-**Current production state:** Website community login, KIPG chat, moderation and shared projector still depend on Supabase. **Do not disable Supabase or deploy a D1-only UI until the replacement passes end-to-end tests.** This folder is preparation, NOT a completed migration.
+**Current production state:** Website community login, KIPG chat, moderation and shared projector still depend on Supabase. **Do not disable Supabase or deploy a D1-only UI until the replacement passes end-to-end tests.** A private Cloudflare D1 staging database now exists for the replacement, but no public Community traffic uses it yet.
 
 ## What exists today (reviewed Oct 25, 2026)
 - Supabase Auth magic-link accounts via `assets/js/community-client.js`, `assets/js/community.js`.
@@ -46,3 +46,12 @@ Start with Cloudflare's free-tier quotas and low-traffic staging, set monitoring
 
 ## Known existing GitHub red X
 Supabase Preview fails on `kipg_profiles already exists` in a repeated SQL migration. It does **not** mean a Cloudflare migration occurred, and must not be 'fixed' by deleting existing Supabase data.
+
+## Cloudflare staging database created (2026-10-31)
+- D1 database: `kipg-community-staging`
+- Database UUID: `39794cd1-b9cd-431e-97bc-d179961feb79`
+- Applied canonical member/chat/moderation schema plus `001_auth_foundation.sql`.
+- Auth foundation stores only SHA-256-style token/session hashes, never raw magic-link or session secrets.
+- Staging tables include `login_requests`, `member_sessions`, `auth_rate_limits` and private `blocked_username_terms` in addition to member/chat/moderation tables.
+- Username moderation seed currently contains 54 blocked/reserved terms across staff impersonation, profanity, sexual/hateful content, provocative spiritual terms and political/campaign names.
+- Verification immediately after schema install: 0 members, 0 login requests, 0 sessions. No Supabase data was copied and no website configuration was changed.
