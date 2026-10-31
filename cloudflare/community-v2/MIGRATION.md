@@ -67,3 +67,13 @@ Supabase Preview fails on `kipg_profiles already exists` in a repeated SQL migra
 - Magic-link tokens and session tokens are stored only as hashes in D1. Sessions use a Secure, HttpOnly, SameSite=Lax `__Host-` cookie.
 - Username changes consult the private D1 blocklist and return a generic member-facing rejection message rather than exposing the internal term list.
 - The live website still uses Supabase; no Community frontend cutover has occurred.
+
+## Private Community staging surface (2026-10-31)
+- Hostname: `community-staging.kipgnetwork.com`
+- Routed directly to `kipg-community-auth-staging`.
+- Protected by Cloudflare Access application `KIPG Community Private Staging`.
+- Current allow policy: Troy's authorized email only.
+- Worker test mode is enabled only for this private staging host. Test-link tokens are exposed only when Cloudflare Access injects the matching authenticated email.
+- Real email remains disabled.
+- The staging page supports fictional signup, one-time token verification, session check, username change, and sign-out.
+- Public KIPG Community remains on Supabase and is not affected by this staging route.
