@@ -154,7 +154,7 @@ export async function handleAdmin(request,env,fetcher=fetch){
   if(request.method==='GET'&&path.endsWith(id)){
     const encrypted=await env.PRAYER_RECOVERY.get(row.object_key);
     if(!encrypted)return json({error:'Prayer object unavailable. Contact an administrator.'},503);
-    try{const payload=await decrypt(encrypted,env);const {object_key,...meta}=row;return json({request:{...meta,isTest:isTestRow(row),name:payload.name,email:payload.email||'',prayerRequest:payload.prayerRequest,contactRequested:payload.contactRequested}});}
+    try{const payload=await decrypt(encrypted,env);const {object_key,...meta}=row;return json({request:{...meta,isTest:isTestRow(row),name:payload.name,email:payload.email||'',phone:payload.phone||'',contactMethod:payload.contactMethod||(payload.contactRequested?'email':'none'),smsConsent:payload.smsConsent===true,prayerRequest:payload.prayerRequest,contactRequested:payload.contactRequested}});}
     catch{return json({error:'Prayer could not be decrypted.'},503);}
   }
   if(request.method==='POST'&&path.endsWith('/status')){
