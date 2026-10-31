@@ -21,9 +21,12 @@ test('Cloudflare Community auth Worker remains fail-closed in staging',async()=>
 
 test('Cloudflare Community auth exposes the required staged account lifecycle',async()=>{
   const source=await read('cloudflare/community-v2/worker.js');
-  for(const route of ['/auth/request','/auth/verify','/me','/username','/signout'])assert.ok(source.includes(route),route);
+  for(const route of ['/auth/request','/auth/verify','/me','/username','/profile','/signout'])assert.ok(source.includes(route),route);
   assert.match(source,/blocked_username_terms/);
   assert.match(source,/That username isn’t available/);
+  assert.match(source,/profile_updated/);
+  assert.match(source,/UPDATE members SET first_name=\?,last_name=\?,newsletter_opt_in=\?/);
+  assert.ok(!/WHERE id=\?[^\n]*body\.(member_id|target_member_id)/.test(source),'profile ownership must come from the authenticated session, not request IDs');
 });
 
 test('Cloudflare Community D1 schema keeps auth secrets hashed and private',async()=>{
