@@ -9,6 +9,20 @@ async function encryptionKey(env) {
   if (bytes.length !== 32) throw new Error('Encryption key unavailable');
   return crypto.subtle.importKey('raw', bytes, 'AES-GCM', false, ['encrypt', 'decrypt']);
 }
+// A saved owner recovery key must match its recorded SHA-256 fingerprint.
+// Neither a launch toggle nor the mere presence of a secret is sufficient.
+export async function verifiedProductionKey(env) {
+  const expected=String(env.PRODUCTION_KEY_FINGERPRINT||'').toLowerCase();
+  if(!/^[0-9a-f]{64}$/.test(expected))return false;
+  try{
+    const raw=unb64(env.RECOVERY_ENCRYPTION_KEY||'');
+    if(raw.length!==32)return false;
+    const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',raw));
+    let mismatch=0;
+    for(let i=0;i<digest.length;i++)mismatch|=digest[i]^parseInt(expected.slice(i*2,i*2+2),16);
+    return mismatch===0;
+  }catch{return false;}
+}
 async function seal(payload, env) {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const ciphertext = await crypto.subtle.encrypt({name:'AES-GCM', iv}, await encryptionKey(env), encoder.encode(JSON.stringify(payload)));
@@ -62,12 +76,13 @@ function json(body,status=200,origin='') {
 const pendingKey = id => `pending/${id}.json`;
 export async function capture(request,env,requestFetch=fetch) {
   const origin = request.headers.get('Origin') || '';
-  if (request.method === 'GET' && new URL(request.url).pathname === '/') return json({service:'KIPG prayer recovery', submissionsEnabled:env.SUBMISSIONS_ENABLED === 'true' && env.PRODUCTION_KEY_READY === 'true'});
+  if (request.method === 'GET' && new URL(request.url).pathname === '/') return json({service:'KIPG prayer recovery', submissionsEnabled:env.SUBMISSIONS_ENABLED === 'true' && env.PRODUCTION_KEY_READY === 'true' && await verifiedProductionKey(env)});
   if (!ORIGINS.has(origin)) return json({error:'Request unavailable'},403);
   if (request.method === 'OPTIONS') return json({},204,origin);
   if (request.method !== 'POST' || new URL(request.url).pathname !== '/submit') return json({error:'Request unavailable'},405,origin);
   // Two independent launch switches. Production readiness requires owner-held encryption-key recovery.
   if (env.SUBMISSIONS_ENABLED !== 'true' || env.PRODUCTION_KEY_READY !== 'true' || !env.PRAYER_RECOVERY || !env.PRAYER_DB) return json({error:'Prayer requests are not open yet.'},503,origin);
+  if (!(await verifiedProductionKey(env))) return json({error:'Prayer requests are not open yet.'},503,origin);
   try {
     // These guards also protect workers.dev; zone-only rules cannot cover it.
     // Origin is a browser restriction, not authentication: scripts can forge it.
