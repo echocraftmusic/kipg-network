@@ -335,7 +335,16 @@ async function open(id){
   const {request:r}=await api('/api/requests/'+encodeURIComponent(id));selected=r.id;
   const box=byId('details');box.replaceChildren();
   if(r.isTest){const badge=document.createElement('p');badge.className='test-label';badge.textContent='FICTIONAL TEST RECORD';box.append(badge);}
-  for(const [name,value] of [['Received',r.received_at],['Name',r.name],['Email',r.email||'(not supplied)'],['Follow-up requested',r.contactRequested?'Yes':'No'],['Prayer request',r.prayerRequest]]){
+  const preferred=r.contactRequested?(r.contactMethod==='text'?'Text message':r.contactMethod==='phone'?'Phone call':r.contactMethod==='email'?'Email':'Unspecified'):'None';
+  const fields=[['Received',r.received_at],['Name',r.name],['Follow-up requested',r.contactRequested?'Yes':'No']];
+  if(r.contactRequested){
+   fields.push(['Preferred contact',preferred]);
+   if(r.contactMethod==='email')fields.push(['Email',r.email||'(not supplied)']);
+   if(r.contactMethod==='phone'||r.contactMethod==='text')fields.push(['Phone number',r.phone||'(not supplied)']);
+   if(r.contactMethod==='text')fields.push(['Text message permission',r.smsConsent?'Yes':'No']);
+  }
+  fields.push(['Prayer request',r.prayerRequest]);
+  for(const [name,value] of fields){
    const p=document.createElement('p'),strong=document.createElement('strong');
    if(name==='Prayer request')p.className='prayer-content';
    strong.textContent=name+': ';p.append(strong,document.createTextNode(String(value||'')));box.append(p);
