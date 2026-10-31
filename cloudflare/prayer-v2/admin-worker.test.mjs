@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
+import {runInNewContext} from 'node:vm';
 import {handleAdmin} from './admin-worker.js';
 
 const keyPair=await webcrypto.subtle.generateKey({name:'RSASSA-PKCS1-v1_5',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['sign','verify']);
@@ -178,4 +179,42 @@ test('full-width prayer queue and detail panels stack vertically with a scrollab
  assert.match(html,/className='prayer-content'/);
  assert.match(html,/aria-pressed/);
  assert.match(html,/id="test-panel"[^>]*hidden/);
+});
+
+test('prayer dashboard offers persistent, keyboard-operable light and dark themes',async()=>{
+ const env=setup();
+ const response=await handleAdmin(await req({}, {url:'https://prayer-admin.kipgnetwork.com/'}),env,fetchCerts);
+ assert.equal(response.status,200);
+ const html=await response.text();
+ assert.match(html,/<button id="theme-toggle" type="button" aria-label="Switch to light mode" aria-pressed="false">/);
+ assert.ok(html.includes(':root[data-theme="light"]'));
+ assert.ok(html.includes('color-scheme:light'));
+ assert.ok(html.includes('color-scheme:dark'));
+ assert.ok(html.includes('#requests .request-row'));
+ assert.ok(html.includes('#details .prayer-content'));
+ assert.ok(html.includes("localStorage.setItem('kipg-prayer-admin-theme'"));
+ const scripts=[...html.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)].map(x=>x[1]);
+ assert.equal(scripts.length,2,'The early initialization and dashboard controls are both present');
+ const headerScript=scripts[0],mainTheme=scripts[1].split('let selected=null,testMode=false;')[0];
+ const storage=new Map(),listeners={},attributes=new Map();
+ const button={textContent:'',setAttribute:(k,v)=>attributes.set(k,v),addEventListener:(event,handler)=>{listeners[event]=handler}};
+ const doc={documentElement:{dataset:{}},getElementById:id=>id==='theme-toggle'?button:null};
+ const globals={document:doc,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)}};
+ runInNewContext(headerScript+'\\n'+mainTheme,globals);
+ assert.equal(doc.documentElement.dataset.theme,'dark');
+ assert.equal(button.textContent,'☀ Light mode');
+ assert.equal(attributes.get('aria-pressed'),'false');
+ assert.equal(typeof listeners.click,'function');
+ listeners.click();
+ assert.equal(doc.documentElement.dataset.theme,'light');
+ assert.equal(button.textContent,'☾ Dark mode');
+ assert.equal(attributes.get('aria-pressed'),'true');
+ assert.equal(storage.get('kipg-prayer-admin-theme'),'light');
+ listeners.click();
+ assert.equal(doc.documentElement.dataset.theme,'dark');
+ assert.equal(storage.get('kipg-prayer-admin-theme'),'dark');
+ storage.set('kipg-prayer-admin-theme','light');
+ doc.documentElement.dataset.theme='dark';
+ runInNewContext(headerScript+'\\n'+mainTheme,globals);
+ assert.equal(doc.documentElement.dataset.theme,'light','Saved preference survives a simulated reload');
 });
