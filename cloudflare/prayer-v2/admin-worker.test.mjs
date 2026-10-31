@@ -218,3 +218,32 @@ test('prayer dashboard offers persistent, keyboard-operable light and dark theme
  runInNewContext(headerScript+String.fromCharCode(10)+mainTheme,{...globals});
  assert.equal(doc.documentElement.dataset.theme,'light','Saved preference survives a simulated reload');
 });
+
+test('authorized reviewer can read encrypted phone and text consent; queue keeps them private',async()=>{
+ const {env,records,objects}=setupSyntheticStore();
+ const id='f5c786b4-3fe7-4f8d-91f2-ec685321cc19';
+ const payload={submissionId:id,name:'Fictional Review',email:'',phone:'(407) 555-0135',contactRequested:true,contactMethod:'text',smsConsent:true,prayerRequest:'Private example for team review'};
+ const key=await webcrypto.subtle.importKey('raw',Buffer.from(env.RECOVERY_ENCRYPTION_KEY,'base64'),'AES-GCM',false,['encrypt']);
+ const iv=webcrypto.getRandomValues(new Uint8Array(12));
+ const encrypted=await webcrypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify({payload,createdAt:Date.now()})));
+ const objectKey='pending/'+id+'.json';
+ objects.set(objectKey,JSON.stringify({version:1,iv:Buffer.from(iv).toString('base64'),ciphertext:Buffer.from(encrypted).toString('base64')}));
+ records.set(id,{id,object_key:objectKey,status:'pending',received_at:new Date().toISOString(),wants_follow_up:1});
+ const queue=await handleAdmin(await req({}),env,fetchCerts);
+ assert.equal(queue.status,200);
+ const publicRow=(await queue.json()).requests[0];
+ assert.equal(Object.hasOwn(publicRow,'phone'),false);
+ assert.equal(Object.hasOwn(publicRow,'email'),false);
+ assert.equal(Object.hasOwn(publicRow,'contactMethod'),false);
+ const details=await handleAdmin(await req({}, {url:url+'/'+id}),env,fetchCerts);
+ assert.equal(details.status,200);
+ const record=(await details.json()).request;
+ assert.equal(record.phone,'(407) 555-0135');
+ assert.equal(record.contactMethod,'text');
+ assert.equal(record.smsConsent,true);
+ assert.equal(record.email,'');
+ const dashboard=await handleAdmin(await req({}, {url:'https://prayer-admin.kipgnetwork.com/'}),env,fetchCerts);
+ const html=await dashboard.text();
+ assert.equal(html.includes('Preferred contact'),true);
+ assert.equal(html.includes('Text message permission'),true);
+});
