@@ -96,7 +96,7 @@ async function verifyLink(req,env){
   }
   return json({ok:true,member:{id:member.id,username:member.username,first_name:member.first_name,last_name:member.last_name,newsletter_opt_in:Boolean(member.newsletter_opt_in)}},200,{'set-cookie':setCookie(session)});
 }
-async function me(req,env){const m=await currentMember(req,env);if(!m)return json({authenticated:false},401);return json({authenticated:true,member:{id:m.id,username:m.username,first_name:m.first_name,last_name:m.last_name,newsletter_opt_in:Boolean(m.newsletter_opt_in),suspended:Boolean(m.suspended)}});}
+async function me(req,env){const m=await currentMember(req,env);if(!m)return json({authenticated:false},401);return json({authenticated:true,member:{id:m.id,email:m.email_normalized,username:m.username,first_name:m.first_name,last_name:m.last_name,newsletter_opt_in:Boolean(m.newsletter_opt_in),suspended:Boolean(m.suspended)}});}
 async function setUsername(req,env){
   if(!allowedOrigin(req,env))return json({error:'Origin not allowed.'},403);
   const m=await currentMember(req,env);if(!m)return json({error:'Sign in required.'},401);if(m.suspended)return json({error:'This account is restricted.'},403);
@@ -150,9 +150,21 @@ document.getElementById('profileIsolation').onclick=async()=>{const r=await fetc
 document.getElementById('signout').onclick=async()=>{const r=await fetch('/signout',{method:'POST'});const j=await r.json();out('nameStatus',j.ok?'Signed out.':'Sign-out failed',r.ok);document.getElementById('check').click();};
 </script></body></html>`,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store','content-security-policy':"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"}});
 
+async function realCommunityPage(){
+  const source=await fetch('https://kipgnetwork.com/pages/community.html',{cf:{cacheTtl:0,cacheEverything:false}});
+  if(!source.ok)return new Response('Community staging page unavailable.',{status:502});
+  let html=await source.text();
+  html=html.replace('<head>','<head><base href="https://kipgnetwork.com/pages/">');
+  html=html.replace(/<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js[^>]*><\/script>/,'');
+  html=html.replace(/<script type="module" src="\.\.\/assets\/js\/community\.js[^"]*"><\/script>/,'<script type="module" src="https://kipgnetwork.com/assets/js/community-cloudflare.js?v=20261031-cloudflare-staging-v1"></script>');
+  html=html.replace('<title>Join the KIPG Community | KIPG Network</title>','<title>KIPG Community Cloudflare Staging | KIPG Network</title>');
+  html=html.replace('<main id="main" class="kipg-shell kc-main">','<main id="main" class="kipg-shell kc-main"><div class="kc-connection" style="margin-bottom:1rem">Private Cloudflare staging — public Community is unchanged.</div>');
+  return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-robots-tag':'noindex, nofollow'}});
+}
 export default{async fetch(req,env){
   const url=new URL(req.url),p=url.pathname;
-  if(p==='/'&&req.method==='GET')return stagingHtml();
+  if(p==='/'&&req.method==='GET')return realCommunityPage();
+  if(p==='/staging-tools'&&req.method==='GET')return stagingHtml();
   if(p==='/health'&&req.method==='GET')return json({ok:true,service:'kipg-community-auth',environment:'staging',email_enabled:env.EMAIL_ENABLED==='true',email_configured:Boolean(env.RESEND_API_KEY),test_mode:env.TEST_MODE==='true'});
   if(p==='/auth/request'&&req.method==='POST')return requestLink(req,env);
   if(p==='/auth/verify'&&req.method==='GET')return verifyLink(req,env);
