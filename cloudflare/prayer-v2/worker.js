@@ -19,18 +19,40 @@ async function unseal(record, env) {
   const bytes = await crypto.subtle.decrypt({name:'AES-GCM', iv:unb64(record.iv)}, await encryptionKey(env), unb64(record.ciphertext));
   return JSON.parse(new TextDecoder().decode(bytes));
 }
+function validPhone(value){
+  if(typeof value!=='string'||!/^[+]?[0-9(). -]{10,24}$/.test(value))return false;
+  const count=value.replace(/[^0-9]/g,'').length;
+  return count>=10&&count<=15;
+}
 function validate(p) {
-  if (!p || typeof p !== 'object' || !uuid.test(p.submissionId || '')) return null;
-  const limits = {name:60, email:160, prayerRequest:4000};
-  const result = {submissionId:p.submissionId.toLowerCase(), contactRequested:p.contactRequested};
+  if (!p || typeof p !== 'object' || Array.isArray(p) || !uuid.test(p.submissionId || '')) return null;
+  if (typeof p.contactRequested !== 'boolean' || typeof p.smsConsent !== 'boolean' ||
+      !['none','email','phone','text'].includes(p.contactMethod)) return null;
+  const limits = {name:60, email:160, phone:24, prayerRequest:4000};
+  const result = {
+    submissionId:p.submissionId.toLowerCase(),
+    contactRequested:p.contactRequested,
+    contactMethod:p.contactMethod,
+    smsConsent:p.smsConsent
+  };
   for (const [field,max] of Object.entries(limits)) {
     if (typeof p[field] !== 'string' || p[field].length > max) return null;
     result[field] = p[field].trim();
   }
-  if (!result.name || result.prayerRequest.length < 5 || typeof result.contactRequested !== 'boolean') return null;
-  if (result.contactRequested && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(result.email)) return null;
-  if (!result.contactRequested && result.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(result.email)) return null;
-  return result;
+  if (!result.name || result.prayerRequest.length < 5) return null;
+  const validEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  if (!result.contactRequested) {
+    // Existing no-follow-up requests could include an optional email; never retain a phone or consent.
+    if(result.contactMethod!=='none'||result.phone||result.smsConsent)return null;
+    return !result.email||validEmail(result.email)?result:null;
+  }
+  if(result.contactMethod==='email')
+    return result.email&&validEmail(result.email)&&!result.phone&&!result.smsConsent?result:null;
+  if(result.contactMethod==='text')
+    return !result.email&&validPhone(result.phone)&&result.smsConsent?result:null;
+  if(result.contactMethod==='phone')
+    return !result.email&&validPhone(result.phone)&&!result.smsConsent?result:null;
+  return null;
 }
 function json(body,status=200,origin='') {
   const headers = {'Content-Type':'application/json', 'Cache-Control':'no-store'};
