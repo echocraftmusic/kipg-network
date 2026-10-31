@@ -17,6 +17,7 @@ grant execute on function auth.uid() to anon, authenticated;
 insert into auth.users values ('${verified}', 'one@example.invalid', now()),
 ('${second}', 'two@example.invalid', now()), ('${unverified}', 'three@example.invalid', null);`);
 await db.exec(await readFile(new URL('../migrations/20261002_001_theater_chat.sql', import.meta.url), 'utf8'));
+await db.exec(await readFile(new URL('../migrations/20261031_007_username_moderation.sql', import.meta.url), 'utf8'));
 async function as(role, id = '') {
   await db.exec('reset role');
   await db.query("select set_config('request.jwt.claim.sub', $1, false)", [id]);
@@ -34,7 +35,7 @@ await as('authenticated', verified);
 let profile = (await db.query('select (public.kipg_ensure_profile()).*')).rows[0];
 assert.match(profile.username, /^User[0-9]{9}$/); checks++;
 assert.equal((await db.query('select (public.kipg_ensure_profile()).*')).rows[0].username, profile.username); checks++;
-for (const bad of ['Bad Name', 'Smile😀', 'Admin32', 'KIPGHost', 'sh1t99', 'fuuuck123', 'f1u2c3k', 'User123', 'ab']) {
+for (const bad of ['Bad Name', 'Smile😀', 'Admin32', 'KIPGHost', 'sh1t99', 'fuuuck123', 'f1u2c3k', 'User123', 'ab', 'TrumpFan', 'Truump2026', 'tr4mpWins', 'MAGAvoice', 'BidenGuy', 'ObamaFan', 'Harris2028', 'DeSantisFL', 'RepublicanJoe', 'DemocratJane', 'evilone', 'eviiil77', 's4tanFan', 'Lucifer13', 'DevilDog', 'DemonKid', 'NakedTruth', 'P0rnFan', 'OnlyFansGuy', 'sexualhero']) {
   await deny('select public.kipg_set_username($1)', [bad]);
 }
 await db.query("select public.kipg_set_username('TroubleTee')");
