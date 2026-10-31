@@ -23,6 +23,16 @@ test('Cloudflare Community auth Worker remains fail-closed in staging',async()=>
   assert.match(source,/Origin not allowed/);
 });
 
+test('Cloudflare staging serves the real KIPG Community UI without Supabase',async()=>{
+  const worker=await read('cloudflare/community-v2/worker.js');
+  const adapter=await read('assets/js/community-cloudflare.js');
+  assert.match(worker,/https:\/\/kipgnetwork\.com\/pages\/community\.html/);
+  assert.match(worker,/community-cloudflare\.js/);
+  assert.match(worker,/x-robots-tag.*noindex/i);
+  assert.ok(!/supabase/i.test(adapter),'Cloudflare adapter must not depend on Supabase');
+  for(const route of ['/auth/request','/me','/username','/profile','/signout'])assert.ok(adapter.includes(route),route);
+});
+
 test('Cloudflare Community auth exposes the required staged account lifecycle',async()=>{
   const source=await read('cloudflare/community-v2/worker.js');
   for(const route of ['/auth/request','/auth/verify','/me','/username','/profile','/signout'])assert.ok(source.includes(route),route);
