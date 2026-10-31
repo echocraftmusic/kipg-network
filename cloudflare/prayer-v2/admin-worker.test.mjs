@@ -193,14 +193,14 @@ test('prayer dashboard offers persistent, keyboard-operable light and dark theme
  assert.ok(html.includes('#requests .request-row'));
  assert.ok(html.includes('#details .prayer-content'));
  assert.ok(html.includes("localStorage.setItem('kipg-prayer-admin-theme'"));
- const scripts=[...html.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)].map(x=>x[1]);
+ const scripts=html.split('<script>').slice(1).map(part=>part.split('</script>')[0]);
  assert.equal(scripts.length,2,'The early initialization and dashboard controls are both present');
  const headerScript=scripts[0],mainTheme=scripts[1].split('let selected=null,testMode=false;')[0];
  const storage=new Map(),listeners={},attributes=new Map();
  const button={textContent:'',setAttribute:(k,v)=>attributes.set(k,v),addEventListener:(event,handler)=>{listeners[event]=handler}};
  const doc={documentElement:{dataset:{}},getElementById:id=>id==='theme-toggle'?button:null};
  const globals={document:doc,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)}};
- runInNewContext(headerScript+'\\n'+mainTheme,globals);
+ runInNewContext(headerScript+String.fromCharCode(10)+mainTheme,globals);
  assert.equal(doc.documentElement.dataset.theme,'dark');
  assert.equal(button.textContent,'☀ Light mode');
  assert.equal(attributes.get('aria-pressed'),'false');
@@ -215,6 +215,6 @@ test('prayer dashboard offers persistent, keyboard-operable light and dark theme
  assert.equal(storage.get('kipg-prayer-admin-theme'),'dark');
  storage.set('kipg-prayer-admin-theme','light');
  doc.documentElement.dataset.theme='dark';
- runInNewContext(headerScript+'\\n'+mainTheme,globals);
+ runInNewContext(headerScript+String.fromCharCode(10)+mainTheme,globals);
  assert.equal(doc.documentElement.dataset.theme,'light','Saved preference survives a simulated reload');
 });
