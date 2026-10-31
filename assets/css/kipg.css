@@ -1027,7 +1027,7 @@ body::before { display:none; }
 .kipg-prayer-form-head>p:last-child,.kipg-prayer-side p{color:var(--ec-text-soft);}
 
 .kipg-prayer-form{display:grid;gap:1.2rem;}
-.kipg-prayer-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.kipg-prayer-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:1rem;}
 .kipg-field{display:grid;gap:.45rem;}
 .kipg-field>span,.kipg-contact-choice legend{font-weight:800;color:var(--ec-text);}
 .kipg-field strong,.kipg-contact-choice strong{color:var(--ec-metal);}
@@ -1045,6 +1045,17 @@ body::before { display:none; }
 .kipg-contact-options small{color:var(--ec-text-soft);line-height:1.35;}
 .kipg-contact-options input:checked+span{border-color:var(--ec-metal);box-shadow:0 0 0 2px color-mix(in srgb,var(--ec-metal) 20%,transparent),0 14px 32px rgba(0,0,0,.12);}
 .kipg-contact-options input:focus-visible+span{outline:2px solid var(--ec-metal-bright);outline-offset:2px;}
+/* Prayer follow-up: conditional email / phone contact, with explicit SMS consent. */
+.kipg-prayer-form [hidden]{display:none!important;}
+.kipg-contact-details{display:grid;gap:1rem;padding:1rem;border:1px solid var(--ec-border);border-radius:.8rem;background:color-mix(in srgb,var(--ec-metal) 5%,var(--ec-surface));}
+.kipg-contact-method-options{grid-template-columns:repeat(3,minmax(0,1fr));}
+.kipg-contact-method-options span{min-height:84px;}
+.kipg-contact-details .kipg-field small{justify-self:start;}
+.kipg-text-consent{display:flex;align-items:flex-start;gap:.7rem;padding:.9rem 1rem;border:1px solid color-mix(in srgb,var(--ec-metal) 40%,var(--ec-border));border-radius:.75rem;background:var(--ec-surface-strong);color:var(--ec-text-soft);font-size:.91rem;line-height:1.55;cursor:pointer;}
+.kipg-text-consent input{flex:none;width:1.2rem;height:1.2rem;margin-top:.16rem;accent-color:var(--ec-metal);}
+.kipg-text-consent:focus-within{outline:2px solid var(--ec-metal-bright);outline-offset:2px;}
+@media(max-width:850px){.kipg-contact-method-options{grid-template-columns:1fr;}.kipg-contact-method-options span{min-height:0;}}
+
 
 .kipg-prayer-privacy{display:grid;grid-template-columns:auto 1fr;gap:.75rem;align-items:start;padding:1rem;border:1px solid color-mix(in srgb,var(--ec-metal) 36%,var(--ec-border));border-radius:.75rem;background:color-mix(in srgb,var(--ec-metal) 7%,var(--ec-surface));}
 .kipg-prayer-privacy>span{color:var(--ec-metal);font-size:1.15rem;line-height:1;}
