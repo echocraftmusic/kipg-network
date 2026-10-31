@@ -85,6 +85,17 @@ export async function handleAdmin(request,env,fetcher=fetch){
   if(request.method==='GET'&&path==='/'){
     return new Response(DASHBOARD,{status:200,headers:{...headers,'Content-Type':'text/html; charset=utf-8'}});
   }
+  // A verified ministry administrator can compare this one-way fingerprint
+  // with their private recovery record; the AES key itself is never returned.
+  if(request.method==='GET'&&path==='/api/key-fingerprint'){
+    try{
+      const keyBytes=Uint8Array.from(atob(env.RECOVERY_ENCRYPTION_KEY||''),c=>c.charCodeAt(0));
+      if(keyBytes.length!==32)throw Error('Invalid encryption secret');
+      const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',keyBytes));
+      const fingerprint=Array.from(digest,b=>b.toString(16).padStart(2,'0')).join('');
+      return json({fingerprint});
+    }catch{return json({error:'Encryption secret unavailable'},503);}
+  }
   if(request.method==='GET'&&path==='/api/requests'){
     const rows=await env.PRAYER_DB.prepare('SELECT id,object_key,status,wants_follow_up,received_at,updated_at FROM prayer_requests ORDER BY received_at DESC LIMIT 100').all();
     const requests=(rows.results||[]).map(({object_key,...row})=>({...row,isTest:object_key===testKey(row.id)}));
