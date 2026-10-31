@@ -7,6 +7,10 @@ const read=file=>readFile(new URL(file,root),'utf8');
 test('Cloudflare Community auth Worker remains fail-closed in staging',async()=>{
   const source=await read('cloudflare/community-v2/worker.js');
   assert.match(source,/EMAIL_ENABLED!=='true'/);
+  assert.match(source,/RESEND_API_KEY/);
+  assert.match(source,/https:\/\/api\.resend\.com\/emails/);
+  assert.match(source,/community@kipgnetwork\.com/);
+  assert.match(source,/expires in 15 minutes/i);
   assert.match(source,/TEST_MODE==='true'/);
   assert.match(source,/TEST_ALLOWED_EMAIL/);
   assert.match(source,/Cf-Access-Authenticated-User-Email/);
