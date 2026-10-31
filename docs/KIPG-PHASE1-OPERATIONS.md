@@ -42,3 +42,10 @@
 
 ## Production readiness two-switch safeguard (2026-10-30)
 The intake Worker requires **both** `SUBMISSIONS_ENABLED=true` and `PRODUCTION_KEY_READY=true` to accept requests. The readiness binding must remain `false` while the key is only a temporary rehearsal key or its owner-held recovery copy is missing. A public form enablement also remains a separate final step. Changing any one switch alone must not launch intake.
+
+## Manual follow-up contact options (2026-10-31)
+- The prayer page now asks whether follow-up is requested, then offers **Email**, **Text message**, or **Phone call**. Only the selected method's contact field becomes required. Text messaging also requires a separate explicit opt-in checkbox.
+- The Cloudflare intake validates every method and consent state server-side and encrypts the chosen method, phone number or email, and SMS consent in private R2 alongside the prayer text. D1 continues to hold only queue metadata (including the follow-up requested flag).
+- The protected dashboard reveals the contact preference, relevant address/number, and text consent only when an authorized ministry leader opens the request. Contact information stays out of queue summaries, notification emails, and public pages.
+- **No automatic SMS or calls are implemented.** Any future integration with an SMS provider must be separately reviewed for consent, opt-out handling, messaging rules, and privacy. Initial responses should be manual by authorized ministry leaders.
+- Public intake remains disabled until the owner-held production encryption-key backup, confidential retention rules, and remaining launch gates are approved.
