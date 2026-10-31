@@ -51,3 +51,16 @@ test('status changes reject cross-origin requests and use atomic D1 batch',async
  assert.equal((await handleAdmin(same,env,fetchCerts)).status,200);
  assert.equal(batchCalls,1);
 });
+
+test('dashboard CSP permits only same-origin queue API access',async()=>{
+ const env=setup();const response=await handleAdmin(await req({}, {url:'https://prayer-admin.kipgnetwork.com/'}),env,fetchCerts);
+ assert.equal(response.status,200);
+ const csp=response.headers.get('Content-Security-Policy');
+ assert.match(csp,/default-src 'none'/);
+ assert.match(csp,/connect-src 'self'/);
+ assert.doesNotMatch(csp,/connect-src \\*/);
+ assert.match(await response.text(),/api\\/requests/);
+ const queue=await handleAdmin(await req({}),env,fetchCerts);
+ assert.equal(queue.status,200);
+ assert.deepEqual(await queue.json(),{requests:[]});
+});
