@@ -44,7 +44,8 @@ export async function capture(request,env,requestFetch=fetch) {
   if (!ORIGINS.has(origin)) return json({error:'Request unavailable'},403);
   if (request.method === 'OPTIONS') return json({},204,origin);
   if (request.method !== 'POST' || new URL(request.url).pathname !== '/submit') return json({error:'Request unavailable'},405,origin);
-  // Two independent launch switches. Production readiness requires owner-held encryption-key recovery.\n  if (env.SUBMISSIONS_ENABLED !== 'true' || env.PRODUCTION_KEY_READY !== 'true' || !env.PRAYER_RECOVERY || !env.PRAYER_DB) return json({error:'Prayer requests are not open yet.'},503,origin);
+  // Two independent launch switches. Production readiness requires owner-held encryption-key recovery.
+  if (env.SUBMISSIONS_ENABLED !== 'true' || env.PRODUCTION_KEY_READY !== 'true' || !env.PRAYER_RECOVERY || !env.PRAYER_DB) return json({error:'Prayer requests are not open yet.'},503,origin);
   try {
     // These guards also protect workers.dev; zone-only rules cannot cover it.
     // Origin is a browser restriction, not authentication: scripts can forge it.
