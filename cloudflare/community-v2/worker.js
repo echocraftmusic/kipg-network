@@ -158,7 +158,7 @@ async function realCommunityPage(){
   html=html.replace(/<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js[^>]*><\/script>/,'');
   html=html.replace(/<script type="module" src="\.\.\/assets\/js\/community\.js[^"]*"><\/script>/,'<script type="module" src="https://kipgnetwork.com/assets/js/community-cloudflare.js?v=20261031-cloudflare-staging-v1"></script>');
   html=html.replace('<title>Join the KIPG Community | KIPG Network</title>','<title>KIPG Community Cloudflare Staging | KIPG Network</title>');
-  html=html.replace('<main id="main" class="kipg-shell kc-main">','<main id="main" class="kipg-shell kc-main"><div class="kc-connection" style="margin-bottom:1rem">Private Cloudflare staging — public Community is unchanged.</div>');
+  html=html.replace('<section class="kc-card" aria-labelledby="account-title">','<section class="kc-card" aria-labelledby="account-title"><div class="kc-connection" style="margin:0 0 1rem">Private Cloudflare staging — public Community is unchanged.</div>');
   return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-robots-tag':'noindex, nofollow'}});
 }
 export default{async fetch(req,env){
