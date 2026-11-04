@@ -1,5 +1,5 @@
 {
-  "enabled": false,
+  "enabled": true,
   "endpoint": "https://kipg-prayer-intake.echocraft-aimusic.workers.dev/submit",
   "turnstileSiteKey": "0x4AAAAAAFQKwpf5PNiAOJeR"
 }
