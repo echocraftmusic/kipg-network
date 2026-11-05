@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-ec-theme="kipg-dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Visit Theater One for KIPG Network viewing sessions. Watch the show, check the session status, and sign in to join community chat when the room is open."><title>Theater One Viewing Room | KIPG Network</title><link rel="icon" href="../assets/images/kipg-network-logo.png"><link rel="stylesheet" href="../core/css/framework.css"><link rel="stylesheet" href="../assets/css/kipg.css?v=20261025-prayer-trace-v5-bright"><script type="module" src="../core/js/app.js"></script><script type="module" src="../assets/js/kipg.js?v=20261025-prayer-trace-v5-bright"></script><link rel="stylesheet" href="../assets/css/viewing-room.css?v=20261105-theater-one-v3"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script><script type="module" src="../assets/js/viewing-room.js?v=20261105-theater-one-v3"></script><script type="module" src="../assets/js/shared-projector.js?v=20261005-staff"></script>
+<html lang="en" data-ec-theme="kipg-dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Visit Theater One for KIPG Network viewing sessions. Watch the show, check the session status, and sign in to join community chat when the room is open."><title>Theater One Viewing Room | KIPG Network</title><link rel="icon" href="../assets/images/kipg-network-logo.png"><link rel="stylesheet" href="../core/css/framework.css"><link rel="stylesheet" href="../assets/css/kipg.css?v=20261025-prayer-trace-v5-bright"><script type="module" src="../core/js/app.js"></script><script type="module" src="../assets/js/kipg.js?v=20261025-prayer-trace-v5-bright"></script><link rel="stylesheet" href="../assets/css/viewing-room.css?v=20261105-theater-one-v4"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script><script type="module" src="../assets/js/viewing-room.js?v=20261105-theater-one-v4"></script><script type="module" src="../assets/js/shared-projector.js?v=20261005-staff"></script>
   <link rel="canonical" href="https://kipgnetwork.com/pages/live.html">
   <meta name="robots" content="index, follow">
   <meta property="og:type" content="website">
@@ -67,9 +67,8 @@
   </div>
 
   <div class="vr-experience">
+    <div class="vr-left-column">
     <section class="vr-theater" aria-label="Theater One projector">
-      <div class="vr-house-light vr-house-light--left" aria-hidden="true"></div>
-      <div class="vr-house-light vr-house-light--right" aria-hidden="true"></div>
       <div class="vr-screen-frame">
         <div class="vr-screen">
           <button class="vr-exit-fullscreen" data-exit-fullscreen type="button" hidden>Exit fullscreen</button>
@@ -89,17 +88,15 @@
         <div class="vr-join-area" data-join-area><button class="kipg-btn" data-join disabled>Join the show</button></div>
         <button class="kipg-btn kipg-btn--outline" data-catch-up hidden>Return to the room’s position</button>
       </div>
-        <section class="vr-radio" data-lobby-radio aria-label="Lobby Radio">
-          <div class="vr-radio__head">
-            <div><p class="vr-panel-kicker">THEATER ONE</p><h2>Lobby Radio</h2></div>
-            <span data-radio-status>Opens with the lobby</span>
-          </div>
-          <div class="vr-radio__controls">
-            <button type="button" class="vr-radio__power" data-lobby-radio-toggle disabled aria-label="Turn Lobby Radio on">▶</button>
-            <div class="vr-radio__now"><span>Shared station</span><strong>Lo-fi rotation</strong></div>
-            <label class="vr-radio__volume"><span>Volume</span><input type="range" min="0" max="100" value="55" data-lobby-radio-volume disabled></label>
-          </div>
-        </section>
+      <section class="vr-radio vr-radio--card" data-lobby-radio aria-label="Lobby Radio">
+        <div class="vr-radio__copy"><p class="vr-panel-kicker">THEATER ONE</p><h2>Lobby Radio</h2><p><strong>Shared station</strong> · Lo-fi rotation</p></div>
+        <div class="vr-radio__compact-controls">
+          <button type="button" class="vr-radio__power" data-lobby-radio-toggle disabled aria-label="Turn Lobby Radio on">▶</button>
+          <label class="vr-radio__volume"><span>Volume</span><input type="range" min="0" max="100" value="55" data-lobby-radio-volume disabled></label>
+          <span data-radio-status>Opens with the lobby</span>
+        </div>
+      </section>
+    </div>
     </section>
 
     <div class="vr-sidecar">
@@ -153,7 +150,7 @@
   </details>
 
   <dialog class="vr-rules-dialog" data-chat-rules-dialog aria-labelledby="vr-rules-title">
-    <div class="vr-rules-dialog__head"><h2 id="vr-rules-title">Community chat rules</h2><button type="button" data-chat-rules-close aria-label="Close community chat rules">×</button></div>
+    <div class="vr-rules-dialog__head" data-chat-rules-drag><h2 id="vr-rules-title">Community chat rules</h2><button type="button" data-chat-rules-close aria-label="Close community chat rules">×</button></div>
     <div class="vr-rules-dialog__body">
       <p>Welcome to KIPG Network. You are welcome here regardless of your beliefs. Please help us keep this room safe and welcoming.</p>
       <ul>
@@ -167,7 +164,14 @@
     </div>
   </dialog>
   <script>
-  (()=>{const dialog=document.querySelector('[data-chat-rules-dialog]'),open=document.querySelector('[data-chat-rules-open]'),close=document.querySelector('[data-chat-rules-close]');if(!dialog||!open||!close)return;open.addEventListener('click',()=>dialog.showModal());close.addEventListener('click',()=>dialog.close());dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close();});})();
+  (()=>{const dialog=document.querySelector('[data-chat-rules-dialog]'),open=document.querySelector('[data-chat-rules-open]'),close=document.querySelector('[data-chat-rules-close]'),drag=document.querySelector('[data-chat-rules-drag]');if(!dialog||!open||!close||!drag)return;
+    open.addEventListener('click',()=>{if(!dialog.open){dialog.show();dialog.style.left='50%';dialog.style.top='18%';dialog.style.transform='translateX(-50%)';}});
+    close.addEventListener('click',()=>dialog.close());
+    let active=false,dx=0,dy=0;
+    drag.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;active=true;const r=dialog.getBoundingClientRect();dx=e.clientX-r.left;dy=e.clientY-r.top;dialog.style.transform='none';drag.setPointerCapture(e.pointerId);});
+    drag.addEventListener('pointermove',e=>{if(!active)return;const maxX=Math.max(8,innerWidth-dialog.offsetWidth-8),maxY=Math.max(8,innerHeight-dialog.offsetHeight-8);dialog.style.left=Math.min(maxX,Math.max(8,e.clientX-dx))+'px';dialog.style.top=Math.min(maxY,Math.max(8,e.clientY-dy))+'px';});
+    drag.addEventListener('pointerup',()=>active=false);drag.addEventListener('pointercancel',()=>active=false);
+  })();
   </script>
   <noscript><p>Please enable JavaScript to load the viewing schedule and video player.</p></noscript>
 </main><footer class="kipg-footer"><div class="kipg-shell kipg-footer__row"><p>© <span data-current-year></span> KIPG Network.</p><p>Faith. Conversation. Community.</p></div></footer></body></html>
