@@ -122,7 +122,7 @@ export function connectSharedChat(view){
     if(failure)hint=failure;
     document.querySelector('[data-chat-member]').textContent=profile?`Signed in as ${profile.username}`:user?'Signed in · preparing your username':client?'Watching as a guest':'Checking community account…';
     status.textContent=!current.chatWindow?'Closed':connected?'Shared chat':'Connecting';
-    if(copy)copy.textContent='';
+    if(copy)copy.textContent=current.chatWindow?'Chat is open now and closes five minutes after the show.':'Chat opens 15 minutes before the show and closes five minutes afterward.';
     view.setAccess(allowed,hint,allowed?'Say something to the community…':user?'Chat is unavailable right now':'Sign in to chat');
     document.querySelector('[data-chat-signin]').hidden=Boolean(user);
   }
