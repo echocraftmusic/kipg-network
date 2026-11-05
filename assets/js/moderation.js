@@ -1,8 +1,8 @@
 import {getCommunityClient,communityError} from './community-client.js?v=20261003-shared';
 export function attachModeration(view,refresh){
-  const panel=document.createElement('section');panel.className='vr-moderation-panel';panel.hidden=true;
-  panel.innerHTML='<h2>Private moderation review</h2><p>Visible to authorized staff. Hiding never sends a notice to the member.</p><button type="button" class="kipg-btn kipg-btn--outline" data-review-refresh>Refresh incidents</button><p data-review-status role="status"></p><div data-review-list></div>';
-  document.querySelector('.vr-program').after(panel);
+  const panel=document.createElement('details');panel.className='vr-moderation-panel';panel.hidden=true;
+  panel.innerHTML='<summary>Moderation review <span>Authorized staff only</span></summary><div class="vr-moderation-body"><p>Hiding never sends a notice to the member.</p><button type="button" class="kipg-btn kipg-btn--outline" data-review-refresh>Refresh incidents</button><p data-review-status role="status"></p><div data-review-list></div></div>';
+  const mount=document.querySelector('[data-staff-tools-body]')||document.querySelector('.vr-main');mount.append(panel);
   const dialog=document.createElement('dialog');dialog.className='vr-moderation-dialog';
   dialog.innerHTML='<form><h2>Moderate this message</h2><p data-target-user></p><blockquote data-target-text></blockquote><label>Reason<select name="reason" required><option>Harassment</option><option>Hate speech</option><option>Threats</option><option>Profanity</option><option>Spam</option><option>Other</option></select></label><label>Private note<textarea name="note" maxlength="1000" rows="3"></textarea></label><label class="vr-checkbox"><input name="serious" type="checkbox"> Serious abuse: hide indefinitely now</label><p>Hide progression: rest of show → seven days → 30 days → indefinite. One hide incident per member per show. No notice is shown to the member.</p><div class="vr-projector-actions"><button class="kipg-btn" name="action" value="hide">Hide User</button><button class="kipg-btn kipg-btn--outline" name="action" value="remove">Remove message</button><button type="button" class="kipg-btn kipg-btn--outline" data-dialog-close>Cancel</button></div><p data-dialog-status role="status"></p></form>';
   document.body.append(dialog);
