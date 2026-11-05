@@ -25,3 +25,14 @@ CREATE TABLE IF NOT EXISTS prayer_audit (
  created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS prayer_audit_request ON prayer_audit(request_id,created_at);
+
+
+-- Emergency prayer-intake control. This stores no prayer content or PII.
+CREATE TABLE IF NOT EXISTS prayer_settings (
+  key TEXT PRIMARY KEY NOT NULL,
+  value TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  updated_by TEXT NOT NULL
+);
+INSERT OR IGNORE INTO prayer_settings (key,value,updated_at,updated_by)
+VALUES ('intake_enabled','true',strftime('%Y-%m-%dT%H:%M:%fZ','now'),'system');
