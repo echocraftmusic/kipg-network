@@ -125,22 +125,22 @@ function tick() {
   $('[data-catch-up]').hidden=!(ready && current.phase==='playing');
   if(rehearsalId){
     $('[data-chat-status]').textContent=current.chatWindow?'Local rehearsal':'Closed';
-    $('[data-chat-copy]').textContent='Test the message layout here. This local rehearsal does not use shared community chat.';
+    const chatCopy=$('[data-chat-copy]');if(chatCopy)chatCopy.textContent='';
     $('[data-chat-member]').textContent='Local rehearsal · no sign-in required';
   }
   if(current.phase==='idle')curtain('Projector 1 · Standing by','Your seat is waiting','Our next shared viewing will appear here when it is scheduled.');
-  if(current.phase==='scheduled')curtain('Theater 1 · Scheduled',session.title,`The room opens ${easternTime(current.opensAt)}.`);
-  if(current.phase==='lobby')curtain('Theater 1 · Starting soon',session.title,`The episode begins ${easternTime(current.startsAt)}. ${joined?'Your seat is ready. Playback will begin when the show starts.':'Take your seat and say hello in chat while we get ready.'}`);
+  if(current.phase==='scheduled')curtain('Theater One · Scheduled',session.title,`The room opens ${easternTime(current.opensAt)}.`);
+  if(current.phase==='lobby')curtain('Theater One · Starting soon',session.title,`The episode begins ${easternTime(current.startsAt)}. ${joined?'Your seat is ready. Playback will begin when the show starts.':'Take your seat and say hello in chat while we get ready.'}`);
   if(current.phase==='playing'){
     if(joined)startPlayer();else curtain('Projector 1 · Now showing',session.title,'Join the show at the room’s current playback position.');
   }
   if(current.phase==='aftershow'){
     if(ready && phaseChanged)player.stopVideo();
-    curtain('Theater 1 · Goodbye chat','Thank you for joining us',`Stay a little longer to say goodbye. Chat closes ${easternTime(current.closesAt)}.`);
+    curtain('Theater One · Goodbye chat','Thank you for joining us',`Stay a little longer to say goodbye. Chat closes ${easternTime(current.closesAt)}.`);
   }
   if(current.phase==='ended'){
     if(ready && phaseChanged)player.stopVideo();
-    curtain('Theater 1 · Session ended','Thank you for joining us','This viewing session and its chat window have closed. Browse completed episodes while we prepare the next gathering.');
+    curtain('Theater One · Session ended','Thank you for joining us','This viewing session and its chat window have closed. Browse completed episodes while we prepare the next gathering.');
   }
 }
 function setRoom(next) {
@@ -148,7 +148,7 @@ function setRoom(next) {
   const key=JSON.stringify(nextSession && [nextSession.id,nextSession.videoId,nextSession.startsAt]);
   if(key!==activeId){clearPlayer();joined=false;activeId=key;lastPhase=null;}
   room=next;session=nextSession;
-  $('[data-room-name]').textContent=next.name;$('[data-projector-name]').textContent=next.projectorName;
+  $('[data-room-name]').textContent=next.id==='theater-1'?'Theater One':next.name;$('[data-projector-name]').textContent=next.projectorName;
   $('[data-session-title]').textContent=session?.title || 'No session scheduled';
   $('[data-session-summary]').textContent=session?.summary || 'Our next shared KIPG viewing will be announced here.';
   $('[data-start-time]').textContent=session ? easternTime(session.startsAt) : 'To be announced';
