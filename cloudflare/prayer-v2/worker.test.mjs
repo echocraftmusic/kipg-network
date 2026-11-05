@@ -31,8 +31,8 @@ test('notifications are disabled by default and contain no prayer details when e
  const {env,rows}=setup();rows.set(id,{id,notification_sent_at:null});
  let calls=0;
  await notifyPending(env,async()=>{calls++;return Response.json({id:'x'})});assert.equal(calls,0);
- Object.assign(env,{NOTIFICATIONS_ENABLED:'true',RESEND_API_KEY:'test',PRAYER_NOTIFICATION_FROM:'KIPG Prayer <no-reply@kipgnetwork.com>',PRAYER_NOTIFICATION_TO:'prayers@kipgnetwork.com'});
- await notifyPending(env,async(url,options)=>{calls++;assert.equal(url,'https://api.resend.com/emails');assert.ok(!options.body.includes(base.prayerRequest));assert.ok(!options.body.includes(base.email));assert.ok(!options.body.includes(base.name));return Response.json({id:'test'});});
+ Object.assign(env,{NOTIFICATIONS_ENABLED:'true',EMAIL_RELAY_SECRET:'relay-test',PRAYER_NOTIFICATION_TO:'prayers@kipgnetwork.com'});
+ await notifyPending(env,async(url,options)=>{calls++;assert.equal(url,'https://kipg-email-relay/internal/prayer-notify');assert.equal(options.headers['x-kipg-relay-secret'],'relay-test');assert.ok(!options.body.includes(base.prayerRequest));assert.ok(!options.body.includes(base.email));assert.ok(!options.body.includes(base.name));return Response.json({ok:true});});
  assert.equal(calls,1);
 });
 
