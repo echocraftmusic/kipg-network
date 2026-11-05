@@ -103,10 +103,12 @@ async function startPlayer() {
 function tick() {
   if(!room)return;
   const current=state();
-  // Sponsors appear during idle, scheduled, pre-show, and after-show states.
-  // Hide the entire placement whenever the shared program is in its playback window,
-  // including for people who have not yet joined the player.
-  $('[data-sponsor-slot]').hidden=current.phase==='playing';
+  document.body.dataset.theaterPhase=current.phase;
+  // Theater One keeps premium sponsor inventory physically visible, but disables and dims it during the program.
+  const sponsor=$('[data-sponsor-slot]');
+  if(sponsor){const dim=current.phase==='playing';sponsor.hidden=false;sponsor.classList.toggle('vr-sponsor--dim',dim);sponsor.setAttribute('aria-disabled',String(dim));}
+  const radio=$('[data-lobby-radio]');
+  if(radio){const dim=current.phase==='playing';radio.classList.toggle('vr-radio--dim',dim);const copy=radio.querySelector('[data-radio-status]');if(copy)copy.textContent=current.phase==='lobby'?'Shared station ready':current.phase==='playing'?'Paused for the show':current.phase==='aftershow'?'Returns next lobby':'Opens with the lobby';}
   chat.update(current);sharedChat?.update(current,session);
   const phaseChanged=current.phase!==lastPhase;
   const labels={idle:'No session scheduled',scheduled:'Scheduled',lobby:'Room open',playing:'Now showing',aftershow:'Goodbye chat · 5 minutes',ended:'Session ended'};
@@ -114,10 +116,10 @@ function tick() {
   $('[data-join]').disabled=!['lobby','playing'].includes(current.phase);
   $('[data-join]').textContent=current.phase==='lobby' ? (joined?'Your seat is ready':'Take your seat') : 'Join the show';
   $('[data-join]').hidden=joined && current.phase==='playing';
-  $('[data-live-indicator]').hidden=current.phase!=='playing' || joined;
+  $('[data-live-indicator]').hidden=current.phase!=='playing';
   $('[data-join-area]').hidden=joined && current.phase==='playing';
   $('[data-countdown]').hidden=current.countdownSeconds==null;
-  $('[data-countdown]').textContent=current.countdownSeconds==null?'':`Starting in ${Math.floor(current.countdownSeconds/60)}:${String(current.countdownSeconds%60).padStart(2,'0')}`;
+  $('[data-countdown]').textContent=current.countdownSeconds==null?'':`${Math.floor(current.countdownSeconds/60)}:${String(current.countdownSeconds%60).padStart(2,'0')}`;
   $('[data-catch-up]').hidden=!(ready && current.phase==='playing');
   if(rehearsalId){
     $('[data-chat-status]').textContent=current.chatWindow?'Local rehearsal':'Closed';
@@ -158,7 +160,7 @@ async function refresh() {
     else {data={rooms:[await loadSharedRoom(roomId)]};}
     const next=data?.rooms?.find(item=>item.id===roomId);if(!next)throw new Error('This room could not be found. Return to Theater 1 or create a new rehearsal.');
     setRoom(next);failures=0;
-  } catch(error){failures++;$('[data-player-notice]').textContent=error.message;if(!room || failures>=3){room=null;$('[data-sponsor-slot]').hidden=true;chat.update({chatWindow:false});sharedChat?.update({chatWindow:false},null);clearPlayer();$('[data-room-status]').textContent='Room unavailable';$('[data-join]').disabled=true;curtain('Please try again','The room could not load','Reload this page to reconnect to the session.');}}
+  } catch(error){failures++;$('[data-player-notice]').textContent=error.message;if(!room || failures>=3){room=null;const sponsor=$('[data-sponsor-slot]');if(sponsor){sponsor.classList.add('vr-sponsor--dim');sponsor.setAttribute('aria-disabled','true');}chat.update({chatWindow:false});sharedChat?.update({chatWindow:false},null);clearPlayer();$('[data-room-status]').textContent='Room unavailable';$('[data-join]').disabled=true;curtain('Please try again','The room could not load','Reload this page to reconnect to the session.');}}
 }
 $('[data-join]').addEventListener('click',()=>{joined=true;tick();});
 $('[data-catch-up]').addEventListener('click',()=>{if(ready && state().phase==='playing'){player.seekTo(state().position,true);player.playVideo();}});
