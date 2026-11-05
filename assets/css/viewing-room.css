@@ -222,3 +222,39 @@ body[data-theater-phase="lobby"] .vr-below-fold,body[data-theater-phase="playing
 @media(max-width:980px){
   .vr-theater>.vr-radio{border-left:0;border-right:0}
 }
+
+/* Theater One 3.2 — balanced projector/chat columns and non-blocking rules window. */
+.vr-experience{grid-template-columns:minmax(0,1.65fr) minmax(315px,.72fr);align-items:start}
+.vr-left-column,.vr-sidecar{display:grid;grid-template-rows:auto auto;gap:.75rem;min-width:0}
+.vr-left-column .vr-theater{width:100%}
+.vr-chat{height:auto;min-height:0;align-self:stretch}
+.vr-experience>.vr-sidecar{height:100%}
+.vr-experience>.vr-sidecar>.vr-chat{height:100%;min-height:0}
+.vr-sidecar-tools{display:block}
+.vr-radio--card,.vr-sidecar-tools .vr-sponsor{min-height:126px}
+.vr-radio--card{display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,.85fr);align-items:center;gap:1rem;padding:.75rem .85rem;border:1px solid color-mix(in srgb,var(--ec-border-strong) 85%,transparent);border-radius:.8rem;background:linear-gradient(145deg,#12100d,#090806);box-shadow:0 10px 26px rgba(0,0,0,.2)}
+.vr-radio__copy h2{font-size:.95rem;margin:0 0 .18rem}
+.vr-radio__copy p:last-child{margin:0;color:var(--ec-text-soft);font-size:.7rem}
+.vr-radio__compact-controls{display:grid;grid-template-columns:auto minmax(105px,1fr);gap:.55rem .7rem;align-items:center}
+.vr-radio__compact-controls>[data-radio-status]{grid-column:1/-1;text-align:right;color:var(--ec-text-soft);font-size:.65rem}
+.vr-radio__volume{min-width:0}
+.vr-experience--wide{grid-template-columns:minmax(0,1fr) 48px}
+.vr-experience--wide .vr-left-column{width:100%}
+.vr-experience--wide .vr-sidecar-tools{display:none}
+.vr-experience--wide .vr-chat-rail{display:flex}
+.vr-rules-dialog{position:fixed;inset:auto;margin:0;width:min(560px,calc(100% - 2rem));max-height:72dvh;z-index:2600;box-shadow:0 18px 55px #000a}
+.vr-rules-dialog::backdrop{background:transparent;backdrop-filter:none}
+.vr-rules-dialog__head{cursor:move;user-select:none;touch-action:none}
+body:has(.vr-rules-dialog[open]){overflow:auto}
+@media(max-width:980px){
+  .vr-experience{grid-template-columns:1fr}
+  .vr-left-column,.vr-sidecar{display:grid}
+  .vr-chat{height:390px!important}
+  .vr-radio--card{grid-template-columns:1fr minmax(210px,.7fr)}
+}
+@media(max-width:680px){
+  .vr-radio--card{grid-template-columns:1fr}
+  .vr-radio__compact-controls{grid-template-columns:auto 1fr}
+  .vr-rules-dialog{width:calc(100% - 1rem);max-height:70dvh}
+}
+.vr-house-light{display:none!important}
