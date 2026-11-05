@@ -115,11 +115,12 @@ function tick() {
   chat.update(current);sharedChat?.update(current,session);
   const phaseChanged=current.phase!==lastPhase;
   const labels={idle:'No session scheduled',scheduled:'Scheduled',lobby:'Room open',playing:'Now showing',aftershow:'Goodbye chat · 5 minutes',ended:'Session ended'};
-  if(current.phase!==lastPhase){$('[data-room-status]').textContent=labels[current.phase];lastPhase=current.phase;}
+  if(current.phase!==lastPhase){const roomStatus=$('[data-room-status]');if(roomStatus)roomStatus.textContent=labels[current.phase];lastPhase=current.phase;}
   $('[data-join]').disabled=!['lobby','playing'].includes(current.phase);
   $('[data-join]').textContent=current.phase==='lobby' ? (joined?'Your seat is ready':'Take your seat') : 'Join the show';
   $('[data-join]').hidden=joined && current.phase==='playing';
-  $('[data-live-indicator]').hidden=current.phase!=='playing';
+  const liveIndicator=$('[data-live-indicator]');if(liveIndicator)liveIndicator.hidden=current.phase!=='playing';
+  const liveLed=$('.vr-led');if(liveLed)liveLed.classList.toggle('vr-led--active',current.phase==='playing');
   $('[data-join-area]').hidden=joined && current.phase==='playing';
   $('[data-countdown]').hidden=current.countdownSeconds==null;
   $('[data-countdown]').textContent=current.countdownSeconds==null?'':`${Math.floor(current.countdownSeconds/60)}:${String(current.countdownSeconds%60).padStart(2,'0')}`;
