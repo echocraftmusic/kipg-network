@@ -312,3 +312,15 @@ body:has(.vr-rules-dialog[open]){overflow:auto}
   .vr-radio--utility{grid-template-columns:1fr}
   .vr-sponsor--utility{grid-template-columns:minmax(0,1fr) 100px}
 }
+
+/* Theater One 3.4 — simplified header and backstage moved below the experience. */
+.vr-room-header{align-items:center;margin-bottom:.8rem;padding:.1rem .15rem .75rem}
+.vr-room-identity h1{margin:0;font-size:clamp(2rem,4vw,3.2rem)}
+.vr-room-tagline{display:none!important}
+.vr-now-showing{margin:.45rem 0 0}
+.vr-show-console{align-self:center}
+.vr-led{min-width:64px;justify-content:center;border-color:#5a2c27;background:#100707}
+.vr-led>span{color:#ff4b3f;font-size:.68rem;letter-spacing:.14em;text-shadow:0 0 7px rgba(255,54,43,.5)}
+.vr-led--active{border-color:#ff5f5f;background:#2a0808;box-shadow:inset 0 0 18px #000,0 0 20px rgba(220,30,30,.28)}
+.vr-led--active>span{color:#fff;text-shadow:0 0 8px rgba(255,255,255,.7),0 0 12px rgba(255,45,45,.9)}
+.vr-backstage{margin:.85rem 0 0}
