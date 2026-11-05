@@ -74,9 +74,16 @@ function json(body,status=200,origin='') {
   return new Response(status === 204 ? null : JSON.stringify(body), {status,headers});
 }
 const pendingKey = id => `pending/${id}.json`;
+async function dashboardIntakeEnabled(env){
+  const row=await env.PRAYER_DB.prepare("SELECT value FROM prayer_settings WHERE key='intake_enabled'").first();
+  return row?.value==='true';
+}
 export async function capture(request,env,requestFetch=fetch) {
   const origin = request.headers.get('Origin') || '';
-  if (request.method === 'GET' && new URL(request.url).pathname === '/') return json({service:'KIPG prayer recovery', submissionsEnabled:env.SUBMISSIONS_ENABLED === 'true' && env.PRODUCTION_KEY_READY === 'true' && await verifiedProductionKey(env)});
+  if (request.method === 'GET' && new URL(request.url).pathname === '/') {
+    let dashboardEnabled=false;try{dashboardEnabled=await dashboardIntakeEnabled(env);}catch{}
+    return json({service:'KIPG prayer recovery', submissionsEnabled:env.SUBMISSIONS_ENABLED === 'true' && env.PRODUCTION_KEY_READY === 'true' && dashboardEnabled && await verifiedProductionKey(env)});
+  }
   if (!ORIGINS.has(origin)) return json({error:'Request unavailable'},403);
   if (request.method === 'OPTIONS') return json({},204,origin);
   if (request.method !== 'POST' || new URL(request.url).pathname !== '/submit') return json({error:'Request unavailable'},405,origin);
@@ -84,6 +91,7 @@ export async function capture(request,env,requestFetch=fetch) {
   if (env.SUBMISSIONS_ENABLED !== 'true' || env.PRODUCTION_KEY_READY !== 'true' || !env.PRAYER_RECOVERY || !env.PRAYER_DB) return json({error:'Prayer requests are not open yet.'},503,origin);
   if (!(await verifiedProductionKey(env))) return json({error:'Prayer requests are not open yet.'},503,origin);
   try {
+    if (!(await dashboardIntakeEnabled(env))) return json({error:'Prayer requests are temporarily paused.'},503,origin);
     // These guards also protect workers.dev; zone-only rules cannot cover it.
     // Origin is a browser restriction, not authentication: scripts can forge it.
     if (!env.TURNSTILE_SECRET_KEY || typeof env.PRAYER_RATE_LIMITER?.limit !== 'function') return json({error:'Prayer requests are temporarily unavailable.'},503,origin);
