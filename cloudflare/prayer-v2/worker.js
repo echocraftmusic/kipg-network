@@ -146,18 +146,20 @@ export async function capture(request,env,requestFetch=fetch) {
 // Retry unnotified requests via Cloudflare cron. Resend idempotency helps prevent duplicates.
 export async function notifyPending(env,requestFetch=fetch){
  if(env.NOTIFICATIONS_ENABLED!=='true')return;
- if(!env.PRAYER_DB||!env.RESEND_API_KEY||!env.PRAYER_NOTIFICATION_FROM||!env.PRAYER_NOTIFICATION_TO)throw Error('Notification service not configured');
+ if(!env.PRAYER_DB||!env.PRAYER_NOTIFICATION_TO||!env.EMAIL_RELAY_SECRET)throw Error('Notification service not configured');
  if(env.PRAYER_NOTIFICATION_TO.trim().toLowerCase()!=='prayers@kipgnetwork.com')throw Error('Unexpected prayer mailbox');
  const rows=await env.PRAYER_DB.prepare("SELECT id FROM prayer_requests WHERE notification_sent_at IS NULL AND object_key NOT LIKE 'test/%' ORDER BY received_at ASC LIMIT 20").all();
  for(const row of rows.results||[]){
   try{
-   const response=await requestFetch('https://api.resend.com/emails',{
+   const relay=env.KIPG_EMAIL_RELAY;
+   const send=relay?.fetch?relay.fetch.bind(relay):requestFetch;
+   const response=await send('https://kipg-email-relay/internal/prayer-notify',{
      method:'POST',
-     headers:{'Authorization':'Bearer '+env.RESEND_API_KEY,'Content-Type':'application/json','Idempotency-Key':'kipg-prayer-notify-'+row.id},
-     body:JSON.stringify({from:env.PRAYER_NOTIFICATION_FROM,to:[env.PRAYER_NOTIFICATION_TO],subject:'New KIPG prayer request',text:'A new confidential prayer request has been received. Sign in to the protected KIPG Prayer Ministry dashboard to review it. No prayer details are sent by email.'}),
+     headers:{'Content-Type':'application/json','x-kipg-relay-secret':env.EMAIL_RELAY_SECRET},
+     body:JSON.stringify({to:env.PRAYER_NOTIFICATION_TO,requestId:row.id}),
      signal:AbortSignal.timeout(10000)
    });
-   if(!response.ok)throw Error('Provider did not accept notification');
+   if(!response.ok)throw Error('Relay did not accept notification');
    await env.PRAYER_DB.prepare("UPDATE prayer_requests SET notification_sent_at=?1 WHERE id=?2 AND notification_sent_at IS NULL").bind(new Date().toISOString(),row.id).run();
   }catch{console.warn('KIPG prayer: a notification remains queued.');}
  }
