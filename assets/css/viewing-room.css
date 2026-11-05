@@ -258,3 +258,57 @@ body:has(.vr-rules-dialog[open]){overflow:auto}
   .vr-rules-dialog{width:calc(100% - 1rem);max-height:70dvh}
 }
 .vr-house-light{display:none!important}
+/* Theater One 3.3 — immersive room + balanced utility deck + backstage admin. */
+.vr-backstage{margin:0 0 .85rem;border:1px solid var(--ec-border-strong);border-radius:.75rem;background:rgba(12,10,8,.9)}
+.vr-backstage:not(:has(.vr-projector-drawer:not([hidden]),.vr-moderation-panel:not([hidden]))){display:none}
+.vr-backstage>summary{cursor:pointer;padding:.7rem .9rem;color:var(--ec-metal-bright);font-weight:800}
+.vr-backstage>summary span{margin-left:.5rem;color:var(--ec-text-soft);font-size:.72rem;font-weight:400}
+.vr-backstage__body{display:grid;gap:.65rem;padding:0 .7rem .7rem}
+.vr-backstage .vr-projector-drawer,.vr-backstage .vr-moderation-panel,.vr-admin-session{margin:0;border:1px solid var(--ec-border);border-radius:.65rem;background:var(--ec-surface)}
+.vr-backstage .vr-projector-drawer>summary,.vr-backstage .vr-moderation-panel>summary,.vr-admin-session>summary{padding:.7rem .8rem}
+.vr-admin-session .vr-session-details__grid{padding:.1rem .8rem .8rem}
+
+.vr-experience{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(330px,.72fr);gap:.9rem;align-items:stretch}
+.vr-theater,.vr-sidecar{height:100%;min-width:0}
+.vr-sidecar{display:flex;flex-direction:column}
+.vr-chat{height:100%!important;min-height:0;max-height:none}
+.vr-chat-body{flex:1;min-height:0}
+.vr-chat.vr-chat--expanded{height:100%!important}
+.vr-experience--wide{grid-template-columns:minmax(0,1fr) 48px}
+.vr-experience--wide .vr-sidecar{height:100%}
+
+.vr-utility-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem;margin-top:.8rem;align-items:stretch}
+.vr-utility-row:has(.vr-members-card:not([hidden])){grid-template-columns:repeat(3,minmax(0,1fr))}
+.vr-radio--utility,.vr-members-card,.vr-sponsor--utility{min-width:0;min-height:132px;border:1px solid color-mix(in srgb,var(--ec-border-strong) 85%,transparent);border-radius:.8rem;background:linear-gradient(145deg,#12100d,#090806);box-shadow:0 10px 26px rgba(0,0,0,.2);padding:.8rem .9rem}
+.vr-radio--utility{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,.85fr);gap:.75rem;align-items:center}
+.vr-utility-copy h2,.vr-members-card h2{font-size:.95rem;margin:.05rem 0 .2rem}
+.vr-utility-copy p:last-child{margin:0;color:var(--ec-text-soft);font-size:.7rem}
+.vr-radio__compact-controls{display:grid;grid-template-columns:auto minmax(95px,1fr);gap:.5rem .6rem;align-items:center}
+.vr-radio__compact-controls>[data-radio-status]{grid-column:1/-1;text-align:right;color:var(--ec-text-soft);font-size:.64rem}
+
+.vr-members-card{overflow:auto;max-height:210px}
+.vr-members-card__head,.vr-members-card__subhead{display:flex;align-items:center;justify-content:space-between;gap:.6rem}
+.vr-members-card__head>[data-members-count]{display:grid;place-items:center;min-width:28px;height:28px;border:1px solid var(--ec-border-strong);border-radius:999px;color:var(--ec-metal-bright);font-weight:800;font-size:.75rem}
+.vr-members-card__list{margin-top:.45rem}
+.vr-members-card__subhead{margin-top:.6rem;padding-top:.55rem;border-top:1px solid var(--ec-border)}
+.vr-members-card__subhead strong{font-size:.72rem;color:var(--ec-metal-bright)}
+.vr-members-card__subhead span{font-size:.7rem;color:var(--ec-text-soft)}
+.vr-members-card .vr-member-row{padding:.4rem .1rem}
+.vr-members-card .vr-members-empty{margin:.45rem 0}
+
+.vr-sponsor--utility{display:grid;grid-template-columns:minmax(0,1fr) 106px;gap:.65rem;align-items:center;margin:0}
+.vr-sponsor--utility .vr-sponsor__placeholder{min-width:0}
+.vr-sponsor--utility .vr-sponsor__live-note{grid-column:1/-1}
+
+@media(max-width:980px){
+  .vr-experience{grid-template-columns:1fr}
+  .vr-chat{height:430px!important}
+  .vr-utility-row,.vr-utility-row:has(.vr-members-card:not([hidden])){grid-template-columns:repeat(2,minmax(0,1fr))}
+  .vr-members-card:not([hidden]){grid-column:1/-1}
+}
+@media(max-width:680px){
+  .vr-utility-row,.vr-utility-row:has(.vr-members-card:not([hidden])){grid-template-columns:1fr}
+  .vr-members-card:not([hidden]){grid-column:auto}
+  .vr-radio--utility{grid-template-columns:1fr}
+  .vr-sponsor--utility{grid-template-columns:minmax(0,1fr) 100px}
+}
