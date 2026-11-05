@@ -14,13 +14,15 @@ else if(returnRoom){const account=new URL('community.html',location.href);accoun
 const chat=attachChat(rehearsalId);
 const sharedChat=rehearsalId ? null : connectSharedChat(chat);
 const screen=$('.vr-screen');
-const layout=$('.vr-layout');
+const layout=$('.vr-experience');
+const sidecar=$('.vr-sidecar');
 const chatPanel=$('.vr-chat');
 const wideButton=$('[data-wide-video]');
 const fullscreenButton=$('[data-fullscreen-video]');
 const expandChatButton=$('[data-chat-expand]');
 function setWide(hidden){
-  layout.classList.toggle('vr-layout--wide',hidden);
+  layout.classList.toggle('vr-experience--wide',hidden);
+  sidecar?.classList.toggle('vr-sidecar--chat-hidden',hidden);
   chatPanel.hidden=hidden;
   $('[data-chat-rail]').hidden=!hidden;
   wideButton.textContent=hidden?'Show chat':'Hide chat';
@@ -28,7 +30,7 @@ function setWide(hidden){
   wideButton.setAttribute('aria-expanded',String(!hidden));
   if(hidden && chatPanel.contains(document.activeElement))wideButton.focus();
 }
-wideButton.addEventListener('click',()=>setWide(!layout.classList.contains('vr-layout--wide')));
+wideButton.addEventListener('click',()=>setWide(!layout.classList.contains('vr-experience--wide')));
 $('[data-restore-chat]').addEventListener('click',()=>{setWide(false);wideButton.focus();});
 expandChatButton.addEventListener('click',()=>{
   const expanded=chatPanel.classList.toggle('vr-chat--expanded');
