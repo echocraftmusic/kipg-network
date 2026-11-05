@@ -64,7 +64,7 @@ export function connectSharedChat(view){
   const status=document.querySelector('[data-chat-status]'),copy=document.querySelector('[data-chat-copy]');
   const roomMembers=createRoomMembers();
   let client=null,user=null,profile=null,current={},session=null,channel=null,presenceChannel=null,presenceIdentity='',presenceSignature='',caps={},generation=0,authGeneration=0,connected=false,rows=[],refreshing=false,arrivals=[],failure='';
-  const moderation=document.querySelector('.vr-program')?attachModeration(view,()=>refreshMessages(generation)):null;
+  const moderation=document.querySelector('[data-staff-tools-body]')?attachModeration(view,()=>refreshMessages(generation)):null;
   function browserPresenceId(){
     try{let id=localStorage.getItem('kipg-room-presence-id');if(!id){id=crypto.randomUUID();localStorage.setItem('kipg-room-presence-id',id);}return id;}
     catch{return crypto.randomUUID();}
