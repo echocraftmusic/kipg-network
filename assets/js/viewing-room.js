@@ -16,6 +16,7 @@ const sharedChat=rehearsalId ? null : connectSharedChat(chat);
 const screen=$('.vr-screen');
 const layout=$('.vr-experience');
 const sidecar=$('.vr-sidecar');
+const leftColumn=$('.vr-left-column');
 const chatPanel=$('.vr-chat');
 const wideButton=$('[data-wide-video]');
 const fullscreenButton=$('[data-fullscreen-video]');
