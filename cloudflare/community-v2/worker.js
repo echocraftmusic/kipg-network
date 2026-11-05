@@ -161,8 +161,23 @@ async function realCommunityPage(){
   html=html.replace('<section class="kc-card" aria-labelledby="account-title">','<section class="kc-card" aria-labelledby="account-title"><div class="kc-connection" style="margin:0 0 1rem">Private Cloudflare staging — public Community is unchanged.</div>');
   return new Response(html,{headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-robots-tag':'noindex, nofollow'}});
 }
+async function prayerNotifyRelay(req,env){
+  if(!env.PRAYER_RELAY_SECRET||req.headers.get('x-kipg-relay-secret')!==env.PRAYER_RELAY_SECRET)return json({error:'Forbidden.'},403);
+  if(!env.RESEND_API_KEY)return json({error:'Email service unavailable.'},503);
+  let body;try{body=await req.json();}catch{return json({error:'Invalid request.'},400);}
+  const to=String(body?.to||'').trim().toLowerCase();
+  const requestId=String(body?.requestId||'').trim();
+  if(to!=='prayers@kipgnetwork.com'||!/^[0-9a-f-]{36}$/i.test(requestId))return json({error:'Invalid notification request.'},400);
+  const subject='[KIPG PRAYER] New Prayer Request Received';
+  const text='A new confidential prayer request has been received. Sign in to the protected KIPG Prayer Ministry dashboard to review it. No prayer details are sent by email.';
+  const sent=await fetch('https://api.resend.com/emails',{method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+env.RESEND_API_KEY,'Idempotency-Key':'kipg-prayer-notify-'+requestId},body:JSON.stringify({from:'KIPG Prayer Ministry <community@kipgnetwork.com>',to:[to],reply_to:'prayers@kipgnetwork.com',subject,text})});
+  if(!sent.ok)return json({error:'Notification provider rejected request.'},502);
+  return json({ok:true},200);
+}
+
 export default{async fetch(req,env){
   const url=new URL(req.url),p=url.pathname;
+  if(p==='/internal/prayer-notify'&&req.method==='POST')return prayerNotifyRelay(req,env);
   if(p==='/'&&req.method==='GET')return realCommunityPage();
   if(p==='/staging-tools'&&req.method==='GET')return stagingHtml();
   if(p==='/health'&&req.method==='GET')return json({ok:true,service:'kipg-community-auth',environment:'staging',email_enabled:env.EMAIL_ENABLED==='true',email_configured:Boolean(env.RESEND_API_KEY),test_mode:env.TEST_MODE==='true'});
