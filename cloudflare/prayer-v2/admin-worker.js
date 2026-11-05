@@ -97,9 +97,20 @@ export async function handleAdmin(request,env,fetcher=fetch){
     }catch{return json({error:'Encryption secret unavailable'},503);}
   }
   if(request.method==='GET'&&path==='/api/requests'){
-    const rows=await env.PRAYER_DB.prepare('SELECT id,object_key,status,wants_follow_up,received_at,updated_at FROM prayer_requests ORDER BY received_at DESC LIMIT 100').all();
+    const [rows,setting]=await Promise.all([
+      env.PRAYER_DB.prepare('SELECT id,object_key,status,wants_follow_up,received_at,updated_at FROM prayer_requests ORDER BY received_at DESC LIMIT 100').all(),
+      env.PRAYER_DB.prepare("SELECT value,updated_at,updated_by FROM prayer_settings WHERE key='intake_enabled'").first()
+    ]);
     const requests=(rows.results||[]).map(({object_key,...row})=>({...row,isTest:object_key===testKey(row.id)}));
-    return json({requests,testMode:testEnabled(env)});
+    return json({requests,testMode:testEnabled(env),intakeOpen:setting?.value==='true',intakeUpdatedAt:setting?.updated_at||null,intakeUpdatedBy:setting?.updated_by||null});
+  }
+  if(request.method==='POST'&&path==='/api/intake-control'){
+    if(!sameOrigin(request,url)||request.headers.get('X-KIPG-Admin-Action')!=='prayer-intake-control')return json({error:'Invalid request origin or action'},403);
+    let body;try{body=await smallJson(request,1024);}catch{return json({error:'Invalid request'},400);}
+    if(!body||typeof body.enabled!=='boolean'||body.confirm!==true)return json({error:'Confirmation required'},400);
+    const stamp=new Date().toISOString(),value=body.enabled?'true':'false';
+    await env.PRAYER_DB.prepare("INSERT INTO prayer_settings(key,value,updated_at,updated_by) VALUES('intake_enabled',?1,?2,?3) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at,updated_by=excluded.updated_by").bind(value,stamp,email).run();
+    return json({ok:true,intakeOpen:body.enabled,updatedAt:stamp});
   }
   if(request.method==='POST'&&path==='/api/test-requests'){
     if(!testEnabled(env))return json({error:'Private test mode is disabled.'},404);
@@ -217,6 +228,8 @@ try{if(localStorage.getItem('kipg-prayer-admin-theme')==='light')document.docume
 :root[data-theme="light"] .primary{background:linear-gradient(115deg,#bc8838,#ecc975);color:#211608;border-color:#986b28}
 :root[data-theme="light"] .primary:hover{background:#e5bf6b}
 :root[data-theme="light"] .warning{color:#80440e}
+:root[data-theme="light"] #intake-control{background:#fffdfa;border-color:#b99b67}
+:root[data-theme="light"] .intake-open{color:#245e31}.intake-paused{color:#9a2f22}
 @media(max-width:650px){.dashboard-header #theme-toggle{margin-top:0}.dashboard-header .header-copy{flex-basis:100%}}
 
 body{margin:0 auto;max-width:1080px;padding:1.5rem}
@@ -259,6 +272,10 @@ main{display:grid;grid-template-columns:minmax(0,1fr);gap:1.25rem;margin-top:1.5
 .primary{background:linear-gradient(115deg,#a67325,#e4bb65);border-color:#f0d48d;color:#17120a;font-weight:700}
 .primary:hover{background:#efc770}
 .warning{color:#ffe1b2}
+#intake-control{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-top:1.5rem;border:1px solid #785d31;border-radius:12px;padding:1.2rem;background:#120f0b}
+#intake-control h2{margin:0 0 .35rem}
+#intake-control p{margin:.25rem 0}.intake-open{color:#78d98a;font-weight:800}.intake-paused{color:#ff8d7f;font-weight:800}
+#intake-toggle[data-mode="pause"]{border-color:#a34a3e;color:#ffd8d2}#intake-toggle[data-mode="resume"]{border-color:#4f8b59;color:#d9ffe0}
 [hidden]{display:none!important}
 
 </style></head><body>
@@ -268,6 +285,10 @@ main{display:grid;grid-template-columns:minmax(0,1fr);gap:1.25rem;margin-top:1.5
 <button id="theme-toggle" type="button" aria-label="Switch to light mode" aria-pressed="false">☀ Light mode</button>
 </header>
 <p id="error" role="status" aria-live="polite"></p>
+<section id="intake-control" aria-labelledby="intake-title">
+<div><h2 id="intake-title">Prayer Intake</h2><p id="intake-state" role="status" aria-live="polite">Checking intake status…</p><p class="hint">Emergency fail-safe: pause new submissions without affecting prayers already received.</p></div>
+<button id="intake-toggle" type="button" disabled>Loading…</button>
+</section>
 <main>
 <section class="panel" aria-labelledby="queue-heading">
 <div class="panel-head"><h2 id="queue-heading">Prayer queue</h2><button id="reload" type="button">Refresh</button></div>
@@ -315,6 +336,12 @@ async function load(){
   status('');
   const data=await api('/api/requests');testMode=!!data.testMode;
   byId('test-panel').hidden=!testMode;
+  const openNow=data.intakeOpen===true;
+  const intakeState=byId('intake-state'),intakeToggle=byId('intake-toggle');
+  intakeState.textContent=openNow?'● OPEN — accepting new prayer requests':'● PAUSED — new prayer requests are blocked';
+  intakeState.className=openNow?'intake-open':'intake-paused';
+  intakeToggle.disabled=false;intakeToggle.dataset.mode=openNow?'pause':'resume';
+  intakeToggle.textContent=openNow?'Pause Prayer Submissions':'Resume Prayer Submissions';
   const list=byId('requests');list.replaceChildren();
   const rows=Array.isArray(data.requests)?data.requests:[];
   byId('queue-count').hidden=rows.length===0;
@@ -367,6 +394,16 @@ async function open(id){
  }catch(e){status(e.message)}
 }
 byId('reload').onclick=load;
+byId('intake-toggle').onclick=async()=>{
+ const button=byId('intake-toggle'),pause=button.dataset.mode==='pause';
+ const prompt=pause?'Pause ALL new prayer submissions now? Existing prayers will remain available in the dashboard.':'Resume prayer submissions and allow visitors to send new requests?';
+ if(!confirm(prompt))return;
+ button.disabled=true;
+ try{
+  await api('/api/intake-control',{method:'POST',headers:{'Content-Type':'application/json','X-KIPG-Admin-Action':'prayer-intake-control'},body:JSON.stringify({enabled:!pause,confirm:true})});
+  await load();status(pause?'Prayer intake paused. New submissions are blocked.':'Prayer intake resumed. New submissions are open.');
+ }catch(e){status(e.message);button.disabled=false}
+};
 byId('save').onclick=async()=>{
  if(!selected)return;
  try{
