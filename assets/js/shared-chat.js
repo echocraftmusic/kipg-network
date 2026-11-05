@@ -11,33 +11,26 @@ export function messageRows(rows){
   return [...unique.values()].sort((a,b)=>Date.parse(a.at)-Date.parse(b.at)||a.id.localeCompare(b.id)).slice(-100);
 }
 function createRoomMembers(){
-  if(typeof document?.createElement!=='function')return null;
-  const heading=document.querySelector('.vr-chat-heading');
-  if(!heading)return null;
-  const wrap=document.createElement('div');wrap.className='vr-members';wrap.hidden=true;
-  const button=document.createElement('button');button.type='button';button.className='vr-members-toggle';button.setAttribute('aria-expanded','false');button.textContent='Members';
-  const panel=document.createElement('div');panel.className='vr-members-panel';panel.hidden=true;
-  panel.innerHTML='<div class="vr-members-head"><strong>In the room</strong><span data-members-count>0</span></div><div data-members-list><p class="vr-members-empty">Connecting…</p></div><div data-hidden-members hidden><div class="vr-members-head vr-members-head--hidden"><strong>Hidden / Restricted</strong><span data-hidden-count>0</span></div><div data-hidden-list><p class="vr-members-empty">No hidden members.</p></div></div>';
-  wrap.append(button,panel);heading.append(wrap);
-  const count=panel.querySelector('[data-members-count]'),list=panel.querySelector('[data-members-list]');
-  const hiddenSection=panel.querySelector('[data-hidden-members]'),hiddenCount=panel.querySelector('[data-hidden-count]'),hiddenList=panel.querySelector('[data-hidden-list]');
-  const close=()=>{panel.hidden=true;button.setAttribute('aria-expanded','false');};
-  button.addEventListener('click',()=>{const open=panel.hidden;panel.hidden=!open;button.setAttribute('aria-expanded',String(open));if(open)wrap.dispatchEvent(new Event('vr-members-open'));});
-  document.addEventListener('click',event=>{if(!panel.hidden&&!wrap.contains(event.target))close();});
-  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!panel.hidden){close();button.focus();}});
+  if(typeof document?.querySelector!=='function')return null;
+  const wrap=document.querySelector('[data-room-members-card]');
+  if(!wrap)return null;
+  const count=wrap.querySelector('[data-members-count]'),list=wrap.querySelector('[data-members-list]');
+  const hiddenSection=wrap.querySelector('[data-hidden-members]'),hiddenCount=wrap.querySelector('[data-hidden-count]'),hiddenList=wrap.querySelector('[data-hidden-list]');
   return {
     wrap,
     render(attendees){
       const named=attendees.filter(item=>item.username&&item.username!=='Guest viewer');
       const guests=attendees.filter(item=>!item.username||item.username==='Guest viewer').length;
-      count.textContent=String(attendees.length);
-      button.textContent='Members ('+attendees.length+')';
-      list.replaceChildren();
+      count.textContent=String(attendees.length);list.replaceChildren();
       for(const item of named){const row=document.createElement('div');row.className='vr-member-row';const name=document.createElement('span');name.textContent=item.username;row.append(name);list.append(row);}
       if(guests){const row=document.createElement('div');row.className='vr-member-row';const name=document.createElement('span');name.textContent='Guest viewers ('+guests+')';row.append(name);list.append(row);}
       if(!attendees.length){const p=document.createElement('p');p.className='vr-members-empty';p.textContent='No one else is showing as present yet.';list.append(p);}
     },
-    setStaff(show){wrap.hidden=!show;hiddenSection.hidden=!show;if(!show){panel.hidden=true;button.setAttribute('aria-expanded','false');hiddenCount.textContent='0';hiddenList.innerHTML='<p class="vr-members-empty">No hidden members.</p>';}} ,
+    setStaff(show){
+      wrap.hidden=!show;
+      hiddenSection.hidden=true;
+      if(!show){hiddenCount.textContent='0';hiddenList.innerHTML='<p class="vr-members-empty">No hidden members.</p>';}
+    },
     renderHidden(items,onRestore){
       hiddenSection.hidden=false;hiddenCount.textContent=String(items.length);hiddenList.replaceChildren();
       for(const item of items){
@@ -134,7 +127,10 @@ export function connectSharedChat(view){
       if(ticket!==authGeneration)return;user=data.session?.user || null;
       if(previousUser!==user?.id){stop();moderation?.setAccess({});}
       if(user?.email_confirmed_at){const response=await client.rpc('kipg_ensure_profile');if(response.error)throw response.error;if(ticket!==authGeneration)return;profile=response.data;}
-      if(user?.email_confirmed_at){const rights=await client.rpc('kipg_capabilities');if(ticket!==authGeneration)return;caps=rights.error?{}:rights.data||{};moderation?.setAccess(caps);roomMembers?.setStaff(false);}else {caps={};moderation?.setAccess({});roomMembers?.setStaff(false);}
+      if(user?.email_confirmed_at){const rights=await client.rpc('kipg_capabilities');if(ticket!==authGeneration)return;caps=rights.error?{}:rights.data||{};moderation?.setAccess(caps);}else {caps={};moderation?.setAccess({});}
+      const staff=Boolean(caps.moderator||caps.administrator||caps.projector);roomMembers?.setStaff(staff);
+      await restartPresence();
+      if(staff&&(caps.moderator||caps.administrator))await refreshHiddenMembers();
       failure='';
     }catch(error){if(ticket===authGeneration)failure='Your community profile could not connect. Reload or sign in again.';}
     if(ticket===authGeneration){subscribe();paint();}
