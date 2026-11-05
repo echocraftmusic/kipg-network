@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-ec-theme="kipg-dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Visit Theater One for KIPG Network viewing sessions. Watch the show, check the session status, and sign in to join community chat when the room is open."><title>Theater One Viewing Room | KIPG Network</title><link rel="icon" href="../assets/images/kipg-network-logo.png"><link rel="stylesheet" href="../core/css/framework.css"><link rel="stylesheet" href="../assets/css/kipg.css?v=20261025-prayer-trace-v5-bright"><script type="module" src="../core/js/app.js"></script><script type="module" src="../assets/js/kipg.js?v=20261025-prayer-trace-v5-bright"></script><link rel="stylesheet" href="../assets/css/viewing-room.css?v=20261105-theater-one-v4"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script><script type="module" src="../assets/js/viewing-room.js?v=20261105-theater-one-v4"></script><script type="module" src="../assets/js/shared-projector.js?v=20261005-staff"></script>
+<html lang="en" data-ec-theme="kipg-dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Visit Theater One for KIPG Network viewing sessions. Watch the show, check the session status, and sign in to join community chat when the room is open."><title>Theater One Viewing Room | KIPG Network</title><link rel="icon" href="../assets/images/kipg-network-logo.png"><link rel="stylesheet" href="../core/css/framework.css"><link rel="stylesheet" href="../assets/css/kipg.css?v=20261025-prayer-trace-v5-bright"><script type="module" src="../core/js/app.js"></script><script type="module" src="../assets/js/kipg.js?v=20261025-prayer-trace-v5-bright"></script><link rel="stylesheet" href="../assets/css/viewing-room.css?v=20261105-theater-one-v5"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script><script type="module" src="../assets/js/viewing-room.js?v=20261105-theater-one-v4"></script><script type="module" src="../assets/js/shared-projector.js?v=20261005-staff"></script>
   <link rel="canonical" href="https://kipgnetwork.com/pages/live.html">
   <meta name="robots" content="index, follow">
   <meta property="og:type" content="website">
@@ -48,26 +48,38 @@
 
   <p class="vr-rehearsal" data-rehearsal hidden><strong>Private browser rehearsal</strong> · This test is visible only in this browser. It does not start a session for other viewers.</p>
 
-  <div class="vr-staff-zone" data-staff-tools-body>
-    <details class="vr-projector-drawer" hidden>
-      <summary>Projector controls <span>Authorized staff · Schedule / Play Now</span></summary>
-      <div class="vr-projector-drawer-body">
-        <p><strong>Shared Projector 1.</strong> Schedule a show or start a one-minute countdown for everyone in Theater One. Only approved operators can change shows.</p>
-        <form class="vr-projector-form" data-projector-form>
-          <div class="ec-field"><label for="video-link">YouTube video link or ID</label><input class="ec-input" id="video-link" name="video" required placeholder="Paste your unlisted YouTube link"></div>
-          <div class="ec-field"><label for="session-title">Session title</label><input class="ec-input" id="session-title" name="title" required maxlength="160" placeholder="The conversation we’re gathering for"></div>
-          <div class="ec-field"><label for="duration">Episode length in minutes</label><input class="ec-input" id="duration" name="duration" type="number" required min="1" max="720" step="0.1"><p>The video uses this duration; chat stays open for five minutes afterward. Play Now includes a one-minute starting-soon countdown.</p></div>
-          <div class="ec-field"><label for="start-time">Scheduled start — your device’s local time</label><input class="ec-input" id="start-time" name="start" type="datetime-local"><p data-eastern-preview>Select a date to see the corresponding Eastern time.</p></div>
-          <div class="vr-projector-actions"><button class="kipg-btn" type="submit" name="mode" value="now">Play Now</button><button class="kipg-btn kipg-btn--outline" type="submit" name="mode" value="schedule">Schedule</button></div>
-          <p data-projector-error role="alert"></p>
-        </form>
-        <section class="vr-room-directory"><h2>Saved video links</h2><p>Keep several choices, then select one for Projector 1. Saved locally in this browser.</p><div data-saved-videos></div></section>
-      </div>
-    </details>
-  </div>
+  <details class="vr-backstage">
+    <summary>Backstage / Staff Tools <span>Authorized staff only</span></summary>
+    <div class="vr-backstage__body" data-staff-tools-body>
+      <details class="vr-projector-drawer" hidden>
+        <summary>Projector controls <span>Schedule / Play Now</span></summary>
+        <div class="vr-projector-drawer-body">
+          <p><strong>Shared Projector 1.</strong> Schedule a show or start a one-minute countdown for everyone in Theater One. Only approved operators can change shows.</p>
+          <form class="vr-projector-form" data-projector-form>
+            <div class="ec-field"><label for="video-link">YouTube video link or ID</label><input class="ec-input" id="video-link" name="video" required placeholder="Paste your unlisted YouTube link"></div>
+            <div class="ec-field"><label for="session-title">Session title</label><input class="ec-input" id="session-title" name="title" required maxlength="160" placeholder="The conversation we’re gathering for"></div>
+            <div class="ec-field"><label for="duration">Episode length in minutes</label><input class="ec-input" id="duration" name="duration" type="number" required min="1" max="720" step="0.1"><p>The video uses this duration; chat stays open for five minutes afterward. Play Now includes a one-minute starting-soon countdown.</p></div>
+            <div class="ec-field"><label for="start-time">Scheduled start — your device’s local time</label><input class="ec-input" id="start-time" name="start" type="datetime-local"><p data-eastern-preview>Select a date to see the corresponding Eastern time.</p></div>
+            <div class="vr-projector-actions"><button class="kipg-btn" type="submit" name="mode" value="now">Play Now</button><button class="kipg-btn kipg-btn--outline" type="submit" name="mode" value="schedule">Schedule</button></div>
+            <p data-projector-error role="alert"></p>
+          </form>
+          <section class="vr-room-directory"><h2>Saved video links</h2><p>Keep several choices, then select one for Projector 1. Saved locally in this browser.</p><div data-saved-videos></div></section>
+        </div>
+      </details>
+
+      <details class="vr-admin-session">
+        <summary>Session details</summary>
+        <div class="vr-session-details__grid">
+          <div><span>Room</span><strong>Theater One</strong></div>
+          <div><span>Starts</span><strong data-start-time>To be announced</strong></div>
+          <div><span>Chat window</span><strong data-chat-time>Opens 15 minutes before the show · closes five minutes afterward</strong></div>
+          <p data-session-summary>Our next shared KIPG viewing will be announced here.</p>
+        </div>
+      </details>
+    </div>
+  </details>
 
   <div class="vr-experience">
-    <div class="vr-left-column">
     <section class="vr-theater" aria-label="Theater One projector">
       <div class="vr-screen-frame">
         <div class="vr-screen">
@@ -88,15 +100,6 @@
         <div class="vr-join-area" data-join-area><button class="kipg-btn" data-join disabled>Join the show</button></div>
         <button class="kipg-btn kipg-btn--outline" data-catch-up hidden>Return to the room’s position</button>
       </div>
-      <section class="vr-radio vr-radio--card" data-lobby-radio aria-label="Lobby Radio">
-        <div class="vr-radio__copy"><p class="vr-panel-kicker">THEATER ONE</p><h2>Lobby Radio</h2><p><strong>Shared station</strong> · Lo-fi rotation</p></div>
-        <div class="vr-radio__compact-controls">
-          <button type="button" class="vr-radio__power" data-lobby-radio-toggle disabled aria-label="Turn Lobby Radio on">▶</button>
-          <label class="vr-radio__volume"><span>Volume</span><input type="range" min="0" max="100" value="55" data-lobby-radio-volume disabled></label>
-          <span data-radio-status>Opens with the lobby</span>
-        </div>
-      </section>
-    </div>
     </section>
 
     <div class="vr-sidecar">
@@ -126,28 +129,36 @@
           <p data-chat-error role="alert"></p>
         </div>
       </aside>
-
-      <div class="vr-sidecar-tools">
-        <section class="vr-sponsor" data-sponsor-slot aria-label="KIPG Network sponsor space">
-          <div class="vr-sponsor__copy"><p class="vr-sponsor__eyebrow">COMMUNITY PARTNER</p><h2>Sponsor Spotlight</h2><p>Supporting meaningful conversations and community connection.</p></div>
-          <div class="vr-sponsor__placeholder" aria-label="Reserved space for a future sponsor">Sponsor placement available</div>
-          <span class="vr-sponsor__live-note">Available before and after the show</span>
-        </section>
-      </div>
     </div>
   </div>
 
-  <p class="vr-notice" data-player-notice role="status"></p>
+  <div class="vr-utility-row">
+    <section class="vr-radio vr-radio--utility" data-lobby-radio aria-label="Lobby Radio">
+      <div class="vr-utility-copy"><p class="vr-panel-kicker">THEATER ONE</p><h2>Lobby Radio</h2><p><strong>Shared station</strong> · Lo-fi rotation</p></div>
+      <div class="vr-radio__compact-controls">
+        <button type="button" class="vr-radio__power" data-lobby-radio-toggle disabled aria-label="Turn Lobby Radio on">▶</button>
+        <label class="vr-radio__volume"><span>Volume</span><input type="range" min="0" max="100" value="55" data-lobby-radio-volume disabled></label>
+        <span data-radio-status>Opens with the lobby</span>
+      </div>
+    </section>
 
-  <details class="vr-session-details vr-below-fold">
-    <summary>Session details</summary>
-    <div class="vr-session-details__grid">
-      <div><span>Room</span><strong>Theater One</strong></div>
-      <div><span>Starts</span><strong data-start-time>To be announced</strong></div>
-      <div><span>Chat window</span><strong data-chat-time>Opens 15 minutes before the show · closes five minutes afterward</strong></div>
-      <p data-session-summary>Our next shared KIPG viewing will be announced here.</p>
-    </div>
-  </details>
+    <section class="vr-members-card" data-room-members-card hidden aria-label="Room members for staff">
+      <div class="vr-members-card__head"><div><p class="vr-panel-kicker">STAFF ONLY</p><h2>Room Members</h2></div><span data-members-count>0</span></div>
+      <div class="vr-members-card__list" data-members-list><p class="vr-members-empty">Connecting…</p></div>
+      <div data-hidden-members hidden>
+        <div class="vr-members-card__subhead"><strong>Hidden / Restricted</strong><span data-hidden-count>0</span></div>
+        <div data-hidden-list><p class="vr-members-empty">No hidden members.</p></div>
+      </div>
+    </section>
+
+    <section class="vr-sponsor vr-sponsor--utility" data-sponsor-slot aria-label="KIPG Network sponsor space">
+      <div class="vr-sponsor__copy"><p class="vr-sponsor__eyebrow">COMMUNITY PARTNER</p><h2>Sponsor Spotlight</h2><p>Supporting meaningful conversations and community connection.</p></div>
+      <div class="vr-sponsor__placeholder" aria-label="Reserved space for a future sponsor">Sponsor placement available</div>
+      <span class="vr-sponsor__live-note">Available before and after the show</span>
+    </section>
+  </div>
+
+  <p class="vr-notice" data-player-notice role="status"></p>
 
   <dialog class="vr-rules-dialog" data-chat-rules-dialog aria-labelledby="vr-rules-title">
     <div class="vr-rules-dialog__head" data-chat-rules-drag><h2 id="vr-rules-title">Community chat rules</h2><button type="button" data-chat-rules-close aria-label="Close community chat rules">×</button></div>
