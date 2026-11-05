@@ -1,3 +1,4 @@
+import { DurableObject } from "cloudflare:workers";
 const COOKIE='__Host-kipg_session';
 const enc=new TextEncoder();
 const json=(body,status=200,headers={})=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store',...headers}});
@@ -130,6 +131,79 @@ async function signout(req,env){
   const token=cookieToken(req);if(token){const hash=await sha256(token);await env.COMMUNITY_DB.prepare('UPDATE member_sessions SET revoked_at=? WHERE session_hash=? AND revoked_at IS NULL').bind(nowIso(),hash).run();}
   return json({ok:true},200,{'set-cookie':clearCookie()});
 }
+
+async function activeShow(env,showId){
+  return env.COMMUNITY_DB.prepare("SELECT id,title,youtube_id,starts_at,ends_at,cancelled FROM shows WHERE id=? AND cancelled=0 AND starts_at<=? AND ends_at>? LIMIT 1").bind(showId,nowIso(),nowIso()).first();
+}
+async function listActiveShows(env){
+  const {results=[]}=await env.COMMUNITY_DB.prepare("SELECT id,title,youtube_id,starts_at,ends_at FROM shows WHERE cancelled=0 AND starts_at<=? AND ends_at>? ORDER BY starts_at ASC LIMIT 10").bind(nowIso(),nowIso()).all();
+  return json({shows:results});
+}
+async function chatHistory(req,env){
+  const m=await currentMember(req,env);if(!m)return json({error:'Sign in required.'},401);
+  const showId=new URL(req.url).searchParams.get('show')||'';
+  if(!showId||!await activeShow(env,showId))return json({error:'That Viewing Room is not active.'},404);
+  const {results=[]}=await env.COMMUNITY_DB.prepare("SELECT id,username_snapshot AS username,body,created_at FROM chat_messages WHERE show_id=? AND hidden=0 ORDER BY created_at DESC,id DESC LIMIT 100").bind(showId).all();
+  return json({show_id:showId,messages:results.reverse()});
+}
+async function chatSocket(req,env){
+  if(!allowedOrigin(req,env))return new Response('Origin not allowed.',{status:403});
+  if(req.headers.get('Upgrade')!=='websocket')return new Response('WebSocket upgrade required.',{status:426});
+  const m=await currentMember(req,env);if(!m)return new Response('Sign in required.',{status:401});
+  if(m.suspended)return new Response('This account is restricted.',{status:403});
+  const showId=new URL(req.url).searchParams.get('show')||'';
+  if(!showId||!await activeShow(env,showId))return new Response('That Viewing Room is not active.',{status:404});
+  const headers=new Headers(req.headers);
+  headers.set('x-kipg-member-id',m.id);
+  headers.set('x-kipg-username',m.username);
+  headers.set('x-kipg-show-id',showId);
+  return env.CHAT_ROOM.getByName(showId).fetch(new Request('https://community-chat.internal/connect',{method:'GET',headers}));
+}
+
+export class ChatRoom extends DurableObject {
+  constructor(ctx,env){
+    super(ctx,env);
+    this.ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair('ping','pong'));
+  }
+  async fetch(request){
+    if(request.headers.get('Upgrade')!=='websocket')return new Response('WebSocket upgrade required.',{status:426});
+    const memberId=request.headers.get('x-kipg-member-id')||'';
+    const username=request.headers.get('x-kipg-username')||'';
+    const showId=request.headers.get('x-kipg-show-id')||'';
+    if(!memberId||!username||!showId)return new Response('Missing chat identity.',{status:403});
+    const pair=new WebSocketPair();
+    const [client,server]=Object.values(pair);
+    this.ctx.acceptWebSocket(server,[`member:${memberId}`]);
+    server.serializeAttachment({memberId,showId,joinedAt:Date.now()});
+    server.send(JSON.stringify({type:'ready',show_id:showId}));
+    return new Response(null,{status:101,webSocket:client});
+  }
+  async webSocketMessage(ws,message){
+    let attachment={};try{attachment=ws.deserializeAttachment()||{};}catch{}
+    if(typeof message!=='string'){ws.send(JSON.stringify({type:'error',message:'Text messages only.'}));return;}
+    let incoming={};try{incoming=JSON.parse(message);}catch{incoming={type:'message',body:message};}
+    if(incoming.type!=='message')return;
+    const body=String(incoming.body||'').trim();
+    if(!body||body.length>500){ws.send(JSON.stringify({type:'error',message:'Messages must be between 1 and 500 characters.'}));return;}
+    const member=await this.env.COMMUNITY_DB.prepare("SELECT id,username,suspended,muted_until,last_message_at FROM members WHERE id=? LIMIT 1").bind(attachment.memberId).first();
+    if(!member||member.suspended){ws.send(JSON.stringify({type:'error',message:'This account cannot post right now.'}));return;}
+    if(member.muted_until&&member.muted_until>nowIso()){ws.send(JSON.stringify({type:'error',message:'This account is temporarily muted.'}));return;}
+    const show=await activeShow(this.env,attachment.showId);
+    if(!show){ws.send(JSON.stringify({type:'error',message:'Chat is closed for this Viewing Room.'}));return;}
+    if(member.last_message_at&&Date.now()-Date.parse(member.last_message_at)<3000){ws.send(JSON.stringify({type:'error',message:'Please wait a moment before sending another message.'}));return;}
+    const id=crypto.randomUUID(),created=nowIso();
+    await this.env.COMMUNITY_DB.batch([
+      this.env.COMMUNITY_DB.prepare("INSERT INTO chat_messages(id,show_id,author_id,username_snapshot,body,created_at,hidden) VALUES(?,?,?,?,?,?,0)").bind(id,attachment.showId,member.id,member.username,body,created),
+      this.env.COMMUNITY_DB.prepare("UPDATE members SET last_message_at=? WHERE id=?").bind(created,member.id)
+    ]);
+    const event=JSON.stringify({type:'message',message:{id,show_id:attachment.showId,username:member.username,body,created_at:created}});
+    for(const socket of this.ctx.getWebSockets()){
+      try{if(socket.readyState===WebSocket.OPEN)socket.send(event);}catch{}
+    }
+  }
+  async webSocketClose(ws,code,reason){try{ws.close(code,reason);}catch{}}
+  async webSocketError(ws){try{ws.close(1011,'Chat connection error');}catch{}}
+}
 const stagingHtml=()=>new Response(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>KIPG Community Cloudflare Staging</title><style>body{font-family:system-ui;background:#111;color:#eee;margin:0}.wrap{max-width:850px;margin:40px auto;padding:24px}.card{border:1px solid #555;border-radius:16px;padding:22px;margin:16px 0;background:#181818}input,button{font:inherit;padding:10px 12px;margin:5px 0;border-radius:8px}input{width:min(100%,420px);box-sizing:border-box;background:#222;color:#fff;border:1px solid #666}button{cursor:pointer}.row{display:grid;gap:8px}.muted{color:#bbb}.ok{color:#b9efb9}.bad{color:#ffb2b2}code{word-break:break-all}.hidden{display:none}</style></head><body><main class="wrap"><h1>KIPG Community — Cloudflare Staging</h1><p class="muted">Private test surface. Fictional test accounts only. The public Community page is not connected to this yet.</p><p id="authBanner" class="ok"></p><section class="card"><h2>Create fictional test account</h2><div class="row"><input id="first" value="Test" aria-label="First name"><input id="last" value="Member" aria-label="Last name"><input id="email" type="email" placeholder="account-a@example.invalid" aria-label="Test email"><label><input id="guidelines" type="checkbox" checked> Community guidelines accepted</label><button id="signup">Generate private signup link</button><button id="signin">Generate returning-member sign-in link</button><p id="signupStatus"></p><button id="verify" class="hidden">Verify generated link and sign in</button></div></section><section class="card"><h2>Current session</h2><button id="check">Refresh member</button><pre id="me">Not checked yet.</pre><div class="row"><input id="username" placeholder="Custom username" aria-label="Custom username"><button id="saveName">Save username</button><button id="isolation">Run cross-account tamper test</button><p id="nameStatus"></p><hr><h3>Edit private profile</h3><input id="profileFirst" placeholder="First name" aria-label="Profile first name"><input id="profileLast" placeholder="Last name" aria-label="Profile last name"><label><input id="profileNewsletter" type="checkbox"> Quarterly newsletter</label><button id="saveProfile">Save profile</button><button id="profileIsolation">Run profile tamper test</button><p id="profileStatus"></p><button id="signout">Sign out</button></div></section></main><script>
 let token='';
 const params=new URLSearchParams(location.search);
@@ -180,7 +254,10 @@ export default{async fetch(req,env){
   if(p==='/internal/prayer-notify'&&req.method==='POST')return prayerNotifyRelay(req,env);
   if(p==='/'&&req.method==='GET')return realCommunityPage();
   if(p==='/staging-tools'&&req.method==='GET')return stagingHtml();
-  if(p==='/health'&&req.method==='GET')return json({ok:true,service:'kipg-community-auth',environment:'staging',email_enabled:env.EMAIL_ENABLED==='true',email_configured:Boolean(env.RESEND_API_KEY),test_mode:env.TEST_MODE==='true'});
+  if(p==='/health'&&req.method==='GET')return json({ok:true,service:'kipg-community-auth',environment:'staging',email_enabled:env.EMAIL_ENABLED==='true',email_configured:Boolean(env.RESEND_API_KEY),test_mode:env.TEST_MODE==='true',realtime_chat:Boolean(env.CHAT_ROOM)});
+  if(p==='/shows/active'&&req.method==='GET')return listActiveShows(env);
+  if(p==='/chat/history'&&req.method==='GET')return chatHistory(req,env);
+  if(p==='/chat/ws'&&req.method==='GET')return chatSocket(req,env);
   if(p==='/auth/request'&&req.method==='POST')return requestLink(req,env);
   if(p==='/auth/verify'&&req.method==='GET')return verifyLink(req,env);
   if(p==='/me'&&req.method==='GET')return me(req,env);
