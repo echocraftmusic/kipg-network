@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-ec-theme="kipg-dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Visit Theater One for KIPG Network viewing sessions. Watch the show, check the session status, and sign in to join community chat when the room is open."><title>Theater One Viewing Room | KIPG Network</title><link rel="icon" href="../assets/images/kipg-network-logo.png"><link rel="stylesheet" href="../core/css/framework.css"><link rel="stylesheet" href="../assets/css/kipg.css?v=20261025-prayer-trace-v5-bright"><script type="module" src="../core/js/app.js"></script><script type="module" src="../assets/js/kipg.js?v=20261025-prayer-trace-v5-bright"></script><link rel="stylesheet" href="../assets/css/viewing-room.css?v=20261025-sponsor-state"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script><script type="module" src="../assets/js/viewing-room.js?v=20261025-sponsor-state"></script><script type="module" src="../assets/js/shared-projector.js?v=20261005-staff"></script>
+<html lang="en" data-ec-theme="kipg-dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Visit Theater One for KIPG Network viewing sessions. Watch the show, check the session status, and sign in to join community chat when the room is open."><title>Theater One Viewing Room | KIPG Network</title><link rel="icon" href="../assets/images/kipg-network-logo.png"><link rel="stylesheet" href="../core/css/framework.css"><link rel="stylesheet" href="../assets/css/kipg.css?v=20261025-prayer-trace-v5-bright"><script type="module" src="../core/js/app.js"></script><script type="module" src="../assets/js/kipg.js?v=20261025-prayer-trace-v5-bright"></script><link rel="stylesheet" href="../assets/css/viewing-room.css?v=20261105-theater-one-v1"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script><script type="module" src="../assets/js/viewing-room.js?v=20261105-theater-one-v1"></script><script type="module" src="../assets/js/shared-projector.js?v=20261005-staff"></script>
   <link rel="canonical" href="https://kipgnetwork.com/pages/live.html">
   <meta name="robots" content="index, follow">
   <meta property="og:type" content="website">
@@ -29,22 +29,129 @@
       <a class="kipg-pearl-nav__link" href="../index.html">Home</a><a class="kipg-pearl-nav__link" href="watch.html">Watch</a><a class="kipg-pearl-nav__link" href="shows.html">Shows</a><a class="kipg-pearl-nav__link" href="live.html" aria-current="page">Viewing Room</a><a class="kipg-pearl-nav__link" href="schedule.html">Schedule</a><a class="kipg-pearl-nav__link" href="community.html">Community</a><a class="kipg-pearl-nav__link" href="prayer.html">Prayer</a><a class="kipg-pearl-nav__link" href="about.html">About</a>
     </div>
   </nav><main id="main" class="vr-main kipg-shell">
-  <div class="vr-heading"><div><p class="kipg-kicker">KIPG Network · Viewing Rooms</p><h1 data-room-name>Theater 1</h1><p>One room. One conversation. Watch together.</p></div><span class="vr-badge" data-room-status role="status">Loading room</span></div>
-  <p class="vr-rehearsal" data-rehearsal hidden><strong>Private browser rehearsal</strong> · This test is visible only in this browser. It does not start a session for other viewers.</p>
-  <details class="vr-projector-drawer" hidden><summary>Projector 1 <span>Authorized host controls · Schedule / Play Now</span></summary><div class="vr-projector-drawer-body"><p><strong>Shared Projector 1.</strong> Schedule a show or start a one-minute countdown for everyone in Theater 1. Only approved operators can change shows.</p><form class="vr-projector-form" data-projector-form><div class="ec-field"><label for="video-link">YouTube video link or ID</label><input class="ec-input" id="video-link" name="video" required placeholder="Paste your unlisted YouTube link"></div><div class="ec-field"><label for="session-title">Session title</label><input class="ec-input" id="session-title" name="title" required maxlength="160" placeholder="The conversation we’re gathering for"></div><div class="ec-field"><label for="duration">Episode length in minutes</label><input class="ec-input" id="duration" name="duration" type="number" required min="1" max="720" step="0.1"><p>The video uses this duration; chat stays open for five minutes afterward. Play Now includes a one-minute starting-soon countdown.</p></div><div class="ec-field"><label for="start-time">Scheduled start — your device’s local time</label><input class="ec-input" id="start-time" name="start" type="datetime-local"><p data-eastern-preview>Select a date to see the corresponding Eastern time.</p></div><div class="vr-projector-actions"><button class="kipg-btn" type="submit" name="mode" value="now">Play Now</button><button class="kipg-btn kipg-btn--outline" type="submit" name="mode" value="schedule">Schedule</button></div><p data-projector-error role="alert"></p></form><section class="vr-room-directory"><h2>Saved video links</h2><p>Keep several choices, then select one for Projector 1. Saved locally in this browser.</p><div data-saved-videos></div></section><p>Use a YouTube link for now. Video file uploads will need a separate video-storage connection.</p></div></details>
-  <div class="vr-layout">
-    <section class="vr-theater" aria-label="Viewing screen">
-      <div class="vr-screen"><button class="vr-exit-fullscreen" data-exit-fullscreen type="button" hidden>Exit fullscreen</button><div id="vr-player" hidden></div><div class="vr-curtain" data-curtain><img src="../assets/images/kipg-network-logo.png" alt="KIPG Network"><p class="kipg-kicker" data-screen-kicker>Welcome to Theater 1</p><h2 data-screen-title>Your seat is waiting</h2><p class="vr-countdown" data-countdown hidden></p><p data-screen-copy>Our next shared viewing will appear here when it is scheduled.</p></div></div>
-      <div class="vr-screen-controls"><button class="kipg-btn kipg-btn--outline" data-wide-video type="button" aria-controls="vr-chat-panel" aria-pressed="false" aria-expanded="true">Hide chat</button><button class="kipg-btn kipg-btn--outline" data-fullscreen-video type="button">Fullscreen video</button><span class="vr-badge vr-badge--quiet" data-projector-name>Projector 1</span><div class="vr-join-area" data-join-area><span class="vr-live-indicator" data-live-indicator role="status" hidden>Currently Live</span><button class="kipg-btn" data-join disabled>Join the show</button></div><button class="kipg-btn kipg-btn--outline" data-catch-up hidden>Return to the room’s position</button></div>
+  <section class="vr-room-header" aria-labelledby="theater-one-title">
+    <div class="vr-room-identity">
+      <p class="kipg-kicker">KIPG NETWORK · THEATER ONE</p>
+      <h1 id="theater-one-title" data-room-name>Theater 1</h1>
+      <p class="vr-room-tagline">One room. One conversation. Watch together.</p>
+      <p class="vr-now-showing"><span>Now showing</span><strong data-session-title>No session scheduled</strong></p>
+    </div>
+    <div class="vr-show-console" aria-label="Theater status">
+      <span class="vr-badge" data-room-status role="status">Loading room</span>
+      <div class="vr-led" aria-label="Show countdown">
+        <span>SHOWTIME</span>
+        <strong data-countdown hidden>00:00</strong>
+      </div>
+      <span class="vr-live-indicator" data-live-indicator role="status" hidden>LIVE</span>
+    </div>
+  </section>
 
-    </section>
-    <div class="vr-chat-rail" data-chat-rail hidden><button type="button" data-restore-chat aria-controls="vr-chat-panel">Show community chat ↓</button></div>
-    <aside id="vr-chat-panel" class="vr-chat" aria-labelledby="vr-chat-title"><div class="vr-chat-heading"><h2 id="vr-chat-title">Room conversation</h2><span class="vr-badge vr-badge--quiet" data-chat-status>Not connected</span><button class="kipg-btn kipg-btn--outline vr-chat-expand" data-chat-expand type="button" aria-controls="vr-chat-panel" aria-pressed="false">Expand chat</button></div><details class="vr-room-rules"><summary>Community chat rules</summary><div><p>Welcome to KIPG Network. You are welcome here regardless of your beliefs. Please help us keep this room safe and welcoming.</p><ul><li>Respect one another, including people with different opinions, backgrounds, and musical tastes.</li><li>Discuss ideas without insults, harassment, threats, hateful speech, or personal attacks.</li><li>Do not post private personal information, explicit content, spam, or unauthorized promotional links.</li><li>Keep prayer requests and sensitive experiences private unless the person has clearly chosen to share them.</li><li>Follow moderator directions. Moderators may remove messages or restrict accounts to protect the community.</li></ul><p>Watch without signing in; sign in to participate in chat during its scheduled window.</p></div></details><div class="vr-chat-body"><div class="vr-chat-empty" data-chat-empty><span aria-hidden="true" class="vr-chat-symbol">✦</span><h3>The conversation belongs here</h3><p data-chat-copy>Chat opens 15 minutes before the next show. Sign in to join the conversation.</p><p class="vr-chat-policy">Faith. Respect. Community.</p></div><div class="vr-chat-log" data-chat-messages role="log" aria-label="Room messages" aria-live="polite" aria-relevant="additions"></div></div><button class="vr-new-messages" data-new-messages type="button" hidden>New messages ↓</button><div class="vr-chat-foot"><p class="vr-chat-member" data-chat-member role="status">Checking community account…</p><a class="kc-text-button" data-chat-signin hidden href="community.html?mode=signin">Sign in to chat</a><form data-chat-form><label class="ec-sr-only" for="chat-message">Your message</label><div class="vr-composer-row"><textarea id="chat-message" data-chat-input rows="2" maxlength="500" placeholder="Chat is not connected yet" disabled></textarea><button class="kipg-btn" type="submit" data-chat-send disabled>Send</button></div><div class="vr-emoji-toolbar"><button type="button" class="vr-emoji-toggle" data-emoji-toggle aria-label="Choose emoji" aria-expanded="false" aria-controls="vr-emoji-picker" disabled><span aria-hidden="true">☺</span> Emoji</button></div><div id="vr-emoji-picker" class="vr-emoji-picker" data-emoji-picker role="group" aria-label="Emoji picker" hidden><div class="vr-emoji-heading"><strong>Choose an emoji</strong><button type="button" data-emoji-close aria-label="Close emoji picker">×</button></div><div class="vr-emoji-grid" data-emoji-grid></div></div><div class="vr-composer-meta"><span data-chat-hint>Chat opens 15 minutes before the show and closes five minutes afterward.</span><span data-chat-count>0/500</span></div></form><p data-chat-error role="alert"></p></div></aside>
+  <p class="vr-rehearsal" data-rehearsal hidden><strong>Private browser rehearsal</strong> · This test is visible only in this browser. It does not start a session for other viewers.</p>
+
+  <div class="vr-staff-zone" data-staff-tools-body>
+    <details class="vr-projector-drawer" hidden>
+      <summary>Projector controls <span>Authorized staff · Schedule / Play Now</span></summary>
+      <div class="vr-projector-drawer-body">
+        <p><strong>Shared Projector 1.</strong> Schedule a show or start a one-minute countdown for everyone in Theater 1. Only approved operators can change shows.</p>
+        <form class="vr-projector-form" data-projector-form>
+          <div class="ec-field"><label for="video-link">YouTube video link or ID</label><input class="ec-input" id="video-link" name="video" required placeholder="Paste your unlisted YouTube link"></div>
+          <div class="ec-field"><label for="session-title">Session title</label><input class="ec-input" id="session-title" name="title" required maxlength="160" placeholder="The conversation we’re gathering for"></div>
+          <div class="ec-field"><label for="duration">Episode length in minutes</label><input class="ec-input" id="duration" name="duration" type="number" required min="1" max="720" step="0.1"><p>The video uses this duration; chat stays open for five minutes afterward. Play Now includes a one-minute starting-soon countdown.</p></div>
+          <div class="ec-field"><label for="start-time">Scheduled start — your device’s local time</label><input class="ec-input" id="start-time" name="start" type="datetime-local"><p data-eastern-preview>Select a date to see the corresponding Eastern time.</p></div>
+          <div class="vr-projector-actions"><button class="kipg-btn" type="submit" name="mode" value="now">Play Now</button><button class="kipg-btn kipg-btn--outline" type="submit" name="mode" value="schedule">Schedule</button></div>
+          <p data-projector-error role="alert"></p>
+        </form>
+        <section class="vr-room-directory"><h2>Saved video links</h2><p>Keep several choices, then select one for Projector 1. Saved locally in this browser.</p><div data-saved-videos></div></section>
+      </div>
+    </details>
   </div>
-  <section class="vr-sponsor" data-sponsor-slot aria-label="KIPG Network sponsor space" hidden><div class="vr-sponsor__copy"><p class="vr-sponsor__eyebrow">KIPG NETWORK · SPONSOR SPOTLIGHT</p><h2>Community Partners</h2><p>Supporting meaningful conversations and community connection.</p></div><div class="vr-sponsor__placeholder" aria-label="Reserved space for a future sponsor">Sponsor placement available</div></section>
+
+  <div class="vr-experience">
+    <section class="vr-theater" aria-label="Theater One projector">
+      <div class="vr-house-light vr-house-light--left" aria-hidden="true"></div>
+      <div class="vr-house-light vr-house-light--right" aria-hidden="true"></div>
+      <div class="vr-screen-frame">
+        <div class="vr-screen">
+          <button class="vr-exit-fullscreen" data-exit-fullscreen type="button" hidden>Exit fullscreen</button>
+          <div id="vr-player" hidden></div>
+          <div class="vr-curtain" data-curtain>
+            <img src="../assets/images/kipg-network-logo.png" alt="KIPG Network">
+            <p class="kipg-kicker" data-screen-kicker>Welcome to Theater 1</p>
+            <h2 data-screen-title>Your seat is waiting</h2>
+            <p data-screen-copy>Our next shared viewing will appear here when it is scheduled.</p>
+          </div>
+        </div>
+      </div>
+      <div class="vr-screen-controls">
+        <button class="kipg-btn kipg-btn--outline" data-wide-video type="button" aria-controls="vr-chat-panel" aria-pressed="false" aria-expanded="true">Hide chat</button>
+        <button class="kipg-btn kipg-btn--outline" data-fullscreen-video type="button">Fullscreen</button>
+        <span class="vr-badge vr-badge--quiet" data-projector-name>Projector 1</span>
+        <div class="vr-join-area" data-join-area><button class="kipg-btn" data-join disabled>Join the show</button></div>
+        <button class="kipg-btn kipg-btn--outline" data-catch-up hidden>Return to the room’s position</button>
+      </div>
+    </section>
+
+    <div class="vr-sidecar">
+      <div class="vr-chat-rail" data-chat-rail hidden><button type="button" data-restore-chat aria-controls="vr-chat-panel">Show community chat ↓</button></div>
+      <aside id="vr-chat-panel" class="vr-chat" aria-labelledby="vr-chat-title">
+        <div class="vr-chat-heading">
+          <div><p class="vr-panel-kicker">COMMUNITY</p><h2 id="vr-chat-title">Room conversation</h2></div>
+          <span class="vr-badge vr-badge--quiet" data-chat-status>Not connected</span>
+          <button class="kipg-btn kipg-btn--outline vr-chat-expand" data-chat-expand type="button" aria-controls="vr-chat-panel" aria-pressed="false">Expand</button>
+        </div>
+        <details class="vr-room-rules"><summary>Chat rules</summary><div><p>Welcome to KIPG Network. You are welcome here regardless of your beliefs. Please help us keep this room safe and welcoming.</p><ul><li>Respect one another, including people with different opinions, backgrounds, and musical tastes.</li><li>Discuss ideas without insults, harassment, threats, hateful speech, or personal attacks.</li><li>Do not post private personal information, explicit content, spam, or unauthorized promotional links.</li><li>Keep prayer requests and sensitive experiences private unless the person has clearly chosen to share them.</li><li>Follow moderator directions. Moderators may remove messages or restrict accounts to protect the community.</li></ul><p>Watch without signing in; sign in to participate in chat during its scheduled window.</p></div></details>
+        <div class="vr-chat-body">
+          <div class="vr-chat-empty" data-chat-empty><span aria-hidden="true" class="vr-chat-symbol">✦</span><h3>The conversation belongs here</h3><p data-chat-copy>Chat opens 15 minutes before the next show. Sign in to join the conversation.</p><p class="vr-chat-policy">Faith. Respect. Community.</p></div>
+          <div class="vr-chat-log" data-chat-messages role="log" aria-label="Room messages" aria-live="polite" aria-relevant="additions"></div>
+        </div>
+        <button class="vr-new-messages" data-new-messages type="button" hidden>New messages ↓</button>
+        <div class="vr-chat-foot">
+          <p class="vr-chat-member" data-chat-member role="status">Checking community account…</p>
+          <a class="kc-text-button" data-chat-signin hidden href="community.html?mode=signin">Sign in to chat</a>
+          <form data-chat-form>
+            <label class="ec-sr-only" for="chat-message">Your message</label>
+            <div class="vr-composer-row"><textarea id="chat-message" data-chat-input rows="2" maxlength="500" placeholder="Chat is not connected yet" disabled></textarea><button class="kipg-btn" type="submit" data-chat-send disabled>Send</button></div>
+            <div class="vr-emoji-toolbar"><button type="button" class="vr-emoji-toggle" data-emoji-toggle aria-label="Choose emoji" aria-expanded="false" aria-controls="vr-emoji-picker" disabled><span aria-hidden="true">☺</span> Emoji</button></div>
+            <div id="vr-emoji-picker" class="vr-emoji-picker" data-emoji-picker role="group" aria-label="Emoji picker" hidden><div class="vr-emoji-heading"><strong>Choose an emoji</strong><button type="button" data-emoji-close aria-label="Close emoji picker">×</button></div><div class="vr-emoji-grid" data-emoji-grid></div></div>
+            <div class="vr-composer-meta"><span data-chat-hint>Chat opens 15 minutes before the show and closes five minutes afterward.</span><span data-chat-count>0/500</span></div>
+          </form>
+          <p data-chat-error role="alert"></p>
+        </div>
+      </aside>
+
+      <div class="vr-sidecar-tools">
+        <section class="vr-radio" data-lobby-radio aria-label="Lobby Radio">
+          <div class="vr-radio__head">
+            <div><p class="vr-panel-kicker">THEATER ONE</p><h2>Lobby Radio</h2></div>
+            <span data-radio-status>Opens with the lobby</span>
+          </div>
+          <div class="vr-radio__controls">
+            <button type="button" class="vr-radio__power" data-lobby-radio-toggle disabled aria-label="Turn Lobby Radio on">▶</button>
+            <div class="vr-radio__now"><span>Shared station</span><strong>Lo-fi rotation</strong></div>
+            <label class="vr-radio__volume"><span>Volume</span><input type="range" min="0" max="100" value="55" data-lobby-radio-volume disabled></label>
+          </div>
+        </section>
+
+        <section class="vr-sponsor" data-sponsor-slot aria-label="KIPG Network sponsor space">
+          <div class="vr-sponsor__copy"><p class="vr-sponsor__eyebrow">COMMUNITY PARTNER</p><h2>Sponsor Spotlight</h2><p>Supporting meaningful conversations and community connection.</p></div>
+          <div class="vr-sponsor__placeholder" aria-label="Reserved space for a future sponsor">Sponsor placement available</div>
+          <span class="vr-sponsor__live-note">Available before and after the show</span>
+        </section>
+      </div>
+    </div>
+  </div>
+
   <p class="vr-notice" data-player-notice role="status"></p>
-      <section class="vr-program" aria-label="On the projector"><p class="kipg-kicker">On the projector</p><h2 data-session-title>No session scheduled</h2><p data-session-summary>Join us for the next KIPG gathering.</p><dl><div><dt>Room</dt><dd>Theater 1</dd></div><div><dt>Starts</dt><dd data-start-time>To be announced</dd></div><div><dt>Chat window</dt><dd data-chat-time>Opens with the room · closes with the episode</dd></div></dl></section>
-  <section class="vr-room-directory" aria-label="Viewing rooms"><div><p class="kipg-kicker">Your viewing rooms</p><h2>A place to gather</h2></div><a class="vr-room-card" href="live.html?room=theater-1" aria-current="page"><span class="vr-room-number">01</span><span><strong>Theater 1</strong><small>Projector 1 · KIPG Podcast</small></span><span aria-hidden="true">→</span></a><p>New rooms will appear here as the network grows.</p></section>
-  <p class="vr-secondary-links"><a href="watch.html">Browse completed episodes</a></p>
+
+  <details class="vr-session-details vr-below-fold">
+    <summary>Session details</summary>
+    <div class="vr-session-details__grid">
+      <div><span>Room</span><strong>Theater 1</strong></div>
+      <div><span>Starts</span><strong data-start-time>To be announced</strong></div>
+      <div><span>Chat window</span><strong data-chat-time>Opens 15 minutes before the show · closes five minutes afterward</strong></div>
+      <p data-session-summary>Our next shared KIPG viewing will be announced here.</p>
+    </div>
+  </details>
+
   <noscript><p>Please enable JavaScript to load the viewing schedule and video player.</p></noscript>
 </main><footer class="kipg-footer"><div class="kipg-shell kipg-footer__row"><p>© <span data-current-year></span> KIPG Network.</p><p>Faith. Conversation. Community.</p></div></footer></body></html>
